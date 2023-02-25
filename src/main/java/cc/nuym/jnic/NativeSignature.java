@@ -18,44 +18,35 @@ public class NativeSignature {
     }
 
     public static void getJNICompatibleName(String name, StringBuilder sb) {
-        Iterator iterator = ((Iterable)name.chars()::iterator).iterator();
-        block7: while (iterator.hasNext()) {
-            int cp = (Integer)iterator.next();
-            if (cp < 127) {
-                switch (cp) {
-                    case 46:
-                    case 47: {
+        for (char c : name.toCharArray()) {
+            if (c < 127) {
+                switch (c) {
+                    case '.':
+                    case '/':
                         sb.append('_');
-                        continue block7;
-                    }
-                    case 36: {
+                        break;
+                    case '$':
                         sb.append("_00024");
-                        continue block7;
-                    }
-                    case 95: {
+                        break;
+                    case '_':
                         sb.append("_1");
-                        continue block7;
-                    }
-                    case 59: {
+                        break;
+                    case ';':
                         sb.append("_2");
-                        continue block7;
-                    }
-                    case 91: {
+                        break;
+                    case '[':
                         sb.append("_3");
-                        continue block7;
-                    }
+                        break;
+                    default:
+                        sb.append(c);
                 }
-                sb.append((char)cp);
-                continue;
+            } else {
+                sb.append("_0");
+                sb.append(String.format("%04x", (int) c));
             }
-            sb.append("_0");
-            String hexed = Integer.toHexString(cp);
-            for (int i = 0; i < 4 - hexed.length(); ++i) {
-                sb.append('0');
-            }
-            sb.append(hexed);
         }
     }
+
 
     public static String getJNICompatibleName(String name) {
         StringBuilder sb = new StringBuilder();

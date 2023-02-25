@@ -16,12 +16,12 @@
 
 然而，这些转换通常很容易逆转，并且有许多免费的开源工具，如 [java-deobfuscator](https://github.com/java-deobfuscator/deobfuscator)它可以在几秒钟内撤消许多现有的混淆工具。
 
-编译并重新链接到原始程序 JNIC 将 Java 类文件转换为本地代码，该代码通过[Java Native Interface](https://en.wikipedia.org/wiki/Java_Native_Interface) 。 
+编译并重新链接到原始程序 JNIC 将 Java 类文件转换为本地代码，该代码通过[Java Native Interface](https://en.wikipedia.org/wiki/Java_Native_Interface) 。
 
 没有原始 Java 字节码的痕迹，并且没有任何适用于类文件的反混淆工具可以恢复原始代码。
 
 前
-```
+```java
 public class App {
   public static void main(String args[]) {
     System.out.println("Hello, world!");
@@ -30,11 +30,12 @@ public class App {
 ```
 
 后
-```
+```java
 public class App {
-  public static native void main(String args[]);
+public static native void main(String args[]);
 }
 ```
+
 ---
 ### Jnic易于使用
 
@@ -54,7 +55,7 @@ JNIC 支持从 Java 8 到 Java 19 的所有 Java 语言特性。此外，JNIC �
 
 ---
 
-### JNIC 不仅仅是一个翻译器
+### Jnic 不仅仅是一个翻译器
 除了生成本机代码之外，JNIC 还可以选择应用涵盖传统 Java 混淆器功能集等的进一步转换。
 
 Jnic 使用行业标准 [ChaCha20](https://datatracker.ietf.org/doc/html/rfc7539)对字符串进行加密等协议中使用的算法 [QUIC](https://en.wikipedia.org/wiki/QUIC) 和 [WireGuard](https://en.wikipedia.org/wiki/WireGuard)
@@ -68,16 +69,16 @@ JNIC 的控制流混淆执行一种称为控制流扁平化的转换，它从根
 ### 用法:
 ```
 Usage: Jnic [-ahV] [-c=<config>] [-l=<librariesDirectory>]
-            [--plain-lib-name=<libraryName>] <jarFile> <outputDirectory>
+[--plain-lib-name=<libraryName>] <jarFile> <outputDirectory>
 将.jar文件翻译成.c文件并生成输出.jar文件
-      <jarFile>           要转译的Jar文件。
-      <outputDirectory>   输出目录。
-  -a, --annotations       使用注解来忽略/包含本地混淆的内容。
-  -c, --config=<config>   Config 文件。
-  -h, --help              显示此帮助信息并退出。
-  -l, --libraries=<librariesDirectory>
-                          依赖库的目录
-      --plain-lib-name=<libraryName>
-                          用于加载的依赖库名称。
-  -V, --version           打印版本信息并退出。
+<jarFile>           要转译的Jar文件。
+<outputDirectory>   输出目录。
+-a, --annotations       使用注解来忽略/包含本地混淆的内容。
+-c, --config=<config>   Config 文件。
+-h, --help              显示此帮助信息并退出。
+-l, --libraries=<librariesDirectory>
+依赖库的目录
+--plain-lib-name=<libraryName>
+用于加载的依赖库名称。
+-V, --version           打印版本信息并退出。
 ```
