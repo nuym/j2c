@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+repositories {
+    mavenLocal()
+
+    maven {
+        url = uri('https://repo.maven.apache.org/maven2/')
+    }
+}
+
+group = 'cc.nuym.jnic'
+version = '1.0-SNAPSHOT'
+description = 'Jnic'
+
+targetCompatibility = sourceCompatibility = JavaVersion.VERSION_1_8
+
+dependencies {
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.14.2'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.14.2'
+
+    implementation 'org.ow2.asm:asm-commons:9.4'
+    implementation 'org.ow2.asm:asm-tree:9.4'
+
+    implementation 'org.apache.commons:commons-compress:1.22'
+
+    implementation 'info.picocli:picocli:4.7.1'
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+shadowJar {
+}
+
+jar.manifest.attributes(
+        'Main-Class': 'cc.nuym.jnic.Main'
+)
+
+build.dependsOn(shadowJar)
