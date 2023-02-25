@@ -25,9 +25,6 @@ public class Zipper
         else if (name.contains("tar.xz")) {
             unTarXZ(archive, target);
         }
-        else if (name.contains("tar.xz")) {
-            unTarXZ(archive, target);
-        }
         else {
             if (!name.contains("tar")) {
                 throw new RuntimeException("unsupported content type ");

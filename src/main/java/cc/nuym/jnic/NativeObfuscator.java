@@ -6,7 +6,6 @@ import cc.nuym.jnic.asm.ClassMetadataReader;
 import cc.nuym.jnic.asm.SafeClassWriter;
 import cc.nuym.jnic.env.SetupManager;
 import cc.nuym.jnic.helpers.ProcessHelper;
-import cc.nuym.jnic.utils.ConsoleColors;
 import cc.nuym.jnic.utils.DataTool;
 import cc.nuym.jnic.utils.FileUtils;
 import cc.nuym.jnic.utils.StringUtils;
@@ -28,12 +27,7 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -52,7 +46,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -577,11 +570,12 @@ public class NativeObfuscator {
                     }
                     Path parent = Paths.get(System.getProperty("user.dir"), new String[0]).getParent();
                     ProcessHelper.ProcessResult compileRunresult = ProcessHelper.run(outputDir, 600000L, Arrays.asList(parent.toFile().getAbsolutePath() + separator + "zig-" + currentOSName + "-" + currentPlatformTypeName + "-0.9.1" + separator + "zig" + (SetupManager.isWindows() ? ".exe" : ""), "cc", "-O2", "-fno-sanitize=undefined", "-funroll-loops", "-target", platformTypeName + "-" + osName + "-gnu", "-fPIC", "-shared", "-s", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-I." + separator + "cpp", "-o." + separator + "build" + separator + "lib" + separator + libName, "." + separator + "cpp" + separator + "jnic.c"));
-                    System.out.println(String.format("Total time used: %dms", compileRunresult.execTime));
+                    System.out.println(String.format("耗时: %dms", compileRunresult.execTime));
                     libNames.add(libName);
                     compileRunresult.check("zig build");
                 }
                 System.out.println("压缩DLL");
+                Enter(outputDir);
                 DataTool.compress(outputDir + separator + "build" + separator + "lib", outputDir + separator + "data.dat", Integer.getInteger("level", 1));
                 System.out.println("重新打包");
                 Util.writeEntry(out, this.nativeDir + "/data.dat", Files.readAllBytes(Paths.get(outputDir + separator + "data.dat", new String[0])));
@@ -604,6 +598,13 @@ public class NativeObfuscator {
             metadataReader.close();
             System.out.println("成功!");
         }
+    }
+
+    public static void Enter(Path outputDir) throws IOException  {//停顿
+        System.out.println("请查看"+outputDir+"\\build\\lib中的dll和so文件!");
+        System.out.println("如您需要加强，将其丢入VMProtect中根据自己需求混淆!");
+        System.out.println("按回车键继续!");
+        new BufferedReader(new InputStreamReader(System.in)).readLine();
     }
 
     public Snippets getSnippets() {
