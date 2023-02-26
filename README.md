@@ -93,3 +93,5 @@ Usage: Jnic [-ahV] [-c=<config>] [-l=<librariesDirectory>]
 如果搭配VMP效果更好
 
 [点击我下载](https://wwpj.lanzoul.com/iink50omalyh)
+
+参考 [Jnic Wiki](https://jnic.dev/documentation/#tutorial)
