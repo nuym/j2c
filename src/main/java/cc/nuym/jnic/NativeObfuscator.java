@@ -154,7 +154,7 @@ public class NativeObfuscator {
             Manifest mf;
             JarFile jar = new JarFile(jarFile);
             System.out.println("处理 " + jarFile + "中...");
-            this.nativeDir = "dev/jnic/" + NativeObfuscator.getRandomString(6);
+            this.nativeDir = "native/" + NativeObfuscator.getRandomString(6);
             this.bootstrapMethodsPool = new BootstrapMethodsPool(this.nativeDir);
             this.staticClassProvider = new InterfaceStaticClassProvider(this.nativeDir);
             this.methodIndex = 1;
