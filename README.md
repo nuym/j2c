@@ -27,14 +27,14 @@ public class App {
     System.out.println("Hello, world!");
   }
 }
-```
+```java
 
 后
 ```
 public class App {
   public static native void main(String args[]);
 }
-```
+```java
 ---
 ### Jnic易于使用
 
