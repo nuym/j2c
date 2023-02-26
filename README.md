@@ -89,3 +89,7 @@ Usage: Jnic [-ahV] [-c=<config>] [-l=<librariesDirectory>]
 用于加载的依赖库名称。
 -V, --version           打印版本信息并退出。
 ```
+
+如果搭配VMP效果更好
+
+[点击我下载](https://wwpj.lanzoul.com/iink50omalyh)
