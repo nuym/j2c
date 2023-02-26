@@ -55,7 +55,7 @@ JNIC 支持从 Java 8 到 Java 19 的所有 Java 语言特性。此外，JNIC �
 
 ---
 
-### JNIC 不仅仅是一个翻译器
+### Jnic 不仅仅是一个翻译器
 除了生成本机代码之外，JNIC 还可以选择应用涵盖传统 Java 混淆器功能集等的进一步转换。
 
 Jnic 使用行业标准 [ChaCha20](https://datatracker.ietf.org/doc/html/rfc7539)对字符串进行加密等协议中使用的算法 [QUIC](https://en.wikipedia.org/wiki/QUIC) 和 [WireGuard](https://en.wikipedia.org/wiki/WireGuard)
