@@ -1,5 +1,12 @@
 # Jnic
-一个强大的本地Java字节码混淆器。| JDK 8
+一个强大的本地Java字节码混淆器。
+
+---
+### 构建
+请使用 JDK 1.8 和 Gradle 进行构建
+```gradle
+gradle build
+```
 
 ---
 ### 特征
