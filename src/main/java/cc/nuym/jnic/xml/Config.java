@@ -16,28 +16,38 @@ public class Config
     private List<Match> includes;
     @JacksonXmlElementWrapper(localName = "exclude")
     private List<Match> excludes;
-    
+    @JacksonXmlElementWrapper(localName = "options")
+    private String options;
+
     public List<String> getTargets() {
         return this.targets;
     }
-    
+
     public void setTargets(final List<String> targets) {
         this.targets = targets;
     }
-    
+
     public List<Match> getIncludes() {
         return this.includes;
     }
-    
+
     public void setIncludes(final List<Match> includes) {
         this.includes = includes;
     }
-    
+
     public List<Match> getExcludes() {
         return this.excludes;
     }
-    
+
     public void setExcludes(final List<Match> excludes) {
         this.excludes = excludes;
+    }
+
+    public String getOptions() {
+        return options;
+    }
+
+    public void setOptions(String options) {
+        this.options = options;
     }
 }

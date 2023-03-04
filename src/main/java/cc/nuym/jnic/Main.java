@@ -2,14 +2,20 @@ package cc.nuym.jnic;
 
 import cc.nuym.jnic.env.SetupManager;
 import cc.nuym.jnic.utils.ConsoleColors;
+import cc.nuym.jnic.utils.DecryptorClass;
 import cc.nuym.jnic.utils.StringUtils;
+import cc.nuym.jnic.utils.TamperUtils;
 import cc.nuym.jnic.xml.Config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.objectweb.asm.tree.*;
+import org.objectweb.asm.*;
+import org.apache.commons.compress.utils.IOUtils;
 import picocli.CommandLine;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
@@ -20,10 +26,12 @@ import java.security.MessageDigest;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 
 public class Main
@@ -191,5 +199,83 @@ public class Main
             System.out.println("Jnic现在将退出，请在编辑配置文件后再次运行。");
             return 0;
         }
+    }
+    private static void obf(File input, File output) throws Throwable {
+        ZipFile zipFile = new ZipFile(input);
+        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(output));
+        Map<String, ClassNode> classes = new HashMap<>();
+        long current = System.currentTimeMillis();
+
+        Enumeration<? extends ZipEntry> entries = zipFile.entries();
+        while (entries.hasMoreElements()) {
+            ZipEntry entry = entries.nextElement();
+
+            if (entry.getName().endsWith(".class")) {
+                ClassReader cr = new ClassReader(zipFile.getInputStream(entry));
+                ClassNode classNode = new ClassNode();
+
+                cr.accept(classNode, 0);
+                classes.put(classNode.name, classNode);
+            } else {
+                ZipEntry newEntry = new ZipEntry(entry);
+                newEntry.setTime(current);
+                zos.putNextEntry(newEntry);
+                zos.write(IOUtils.toByteArray(zipFile.getInputStream(entry)));
+            }
+        }
+        List<String> classNames = new ArrayList<>(classes.keySet());
+
+        String decryptClassName = TamperUtils.randomClassName(classNames);
+        String decryptMethodName = TamperUtils.randomString();
+
+        classes.values().forEach(classNode -> {
+            Set<MethodNode> toProcess = new HashSet<>();
+
+            classNode.methods.stream().filter(TamperUtils::hasInstructions).forEach(methodNode -> {
+                for (AbstractInsnNode insn : methodNode.instructions.toArray()) {
+                    if (insn instanceof LdcInsnNode && ((LdcInsnNode) insn).cst instanceof String) {
+                        methodNode.instructions.insert(insn, new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                decryptClassName, decryptMethodName, "(Ljava/lang/Object;)Ljava/lang/String;", false));
+                        toProcess.add(methodNode);
+                    }
+                }
+            });
+
+            ClassWriter cw = new ClassWriter(0);
+            classNode.accept(cw);
+            ClassReader cr = new ClassReader(cw.toByteArray());
+
+            toProcess.forEach(methodNode -> Stream.of(methodNode.instructions.toArray()).filter(TamperUtils::isString).forEach(insn -> {
+                LdcInsnNode ldc = (LdcInsnNode) insn;
+                ldc.cst = TamperUtils.encrypt((String) ldc.cst, classNode.name.replace("/", "."), methodNode.name, cr.getItemCount() + 20);
+            }));
+        });
+
+        classes.values().forEach(classNode -> {
+            try {
+                ClassWriter cw = new ClassWriter(0);
+                classNode.accept(cw);
+                for (int i = 0; i < 20; i++)
+                    cw.newUTF8(TamperUtils.randomString());
+
+                ZipEntry newEntry = new ZipEntry(classNode.name + ".class");
+                newEntry.setTime(current);
+
+                zos.putNextEntry(newEntry);
+                zos.write(cw.toByteArray());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+        byte[] decryptionBytes = new DecryptorClass(decryptClassName, TamperUtils.randomString(), TamperUtils.randomString(),
+                decryptMethodName).getBytes();
+
+        ZipEntry newEntry = new ZipEntry(decryptClassName + ".class");
+        newEntry.setTime(current);
+
+        zos.putNextEntry(newEntry);
+        zos.write(decryptionBytes);
+        zos.close();
     }
 }
