@@ -2,6 +2,13 @@
 一个强大的本地Java字节码混淆器。
 
 ---
+### 构建
+请使用 JDK 1.8 和 Gradle 进行构建
+```gradle
+gradle build
+```
+
+---
 ### 特征
 1. 阻止逆向工程
     - Jnic 将类文件转换为本机 JNI 库，Java 工具无法检测、修改、分析或调试这些库。 本机代码显着阻碍了分析。
@@ -82,3 +89,9 @@ Usage: Jnic [-ahV] [-c=<config>] [-l=<librariesDirectory>]
 用于加载的依赖库名称。
 -V, --version           打印版本信息并退出。
 ```
+
+如果搭配VMP效果更好
+
+[点击我下载](https://wwpj.lanzoul.com/iink50omalyh)
+
+参考 [Jnic Wiki](https://jnic.dev/documentation/#tutorial)
