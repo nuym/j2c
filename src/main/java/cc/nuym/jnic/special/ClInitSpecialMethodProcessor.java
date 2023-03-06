@@ -23,7 +23,8 @@ public class ClInitSpecialMethodProcessor implements SpecialMethodProcessor
         instructions.clear();
         instructions.add(new LdcInsnNode((Object)context.classIndex));
         instructions.add(new LdcInsnNode(Type.getObjectType(context.clazz.name)));
-        instructions.add(new MethodInsnNode(184, context.obfuscator.getNativeDir() + "/Loader", "registerNativesForClass", "(ILjava/lang/Class;)V", false));
+        // ?
+        instructions.add(new MethodInsnNode(184, context.obfuscator.getNativeDir() + "/JNICLoader", "registerNativesForClass", "(ILjava/lang/Class;)V", false));
         instructions.add(new MethodInsnNode(184, context.clazz.name, "$jnicLoader", "()V", false));
         if (Util.getFlag(context.clazz.access, 512)) {
             if (context.nativeMethod == null) {

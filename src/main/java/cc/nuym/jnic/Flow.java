@@ -49,7 +49,7 @@ public class Flow {
                     insnList.add(labelNode4);
                     insnList.add(new FieldInsnNode(178, classNode.name, FLOW_FIELD_NAME, "J"));
                     while ((l = ThreadLocalRandom.current().nextLong()) == flowFieldValue) {
-                    }
+                }
                     insnList.add(ASMUtils.pushLong(l));
                     insnList.add(new InsnNode(148));
                     insnList.add(new InsnNode(89));

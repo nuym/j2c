@@ -200,6 +200,8 @@ public class Main
             return 0;
         }
     }
+
+    // stringenc-antitamper https://github.com/ItzSomebody/stringenc-antitamper
     private static void obf(File input, File output) throws Throwable {
         ZipFile zipFile = new ZipFile(input);
         ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(output));

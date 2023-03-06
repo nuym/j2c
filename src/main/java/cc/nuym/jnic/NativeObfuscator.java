@@ -1,5 +1,4 @@
-// Decompiled with: CFR 0.152
-// Class Version: 8
+// rebuild
 package cc.nuym.jnic;
 
 import cc.nuym.jnic.asm.ClassMetadataReader;
@@ -67,6 +66,7 @@ public class NativeObfuscator {
     private int currentClassId;
     private int methodIndex;
     private String nativeDir;
+    private String nativeNonDir;
     private static String separator = File.separator;
 
     public NativeObfuscator() {
@@ -154,7 +154,8 @@ public class NativeObfuscator {
             Manifest mf;
             JarFile jar = new JarFile(jarFile);
             System.out.println("处理 " + jarFile + "中...");
-            this.nativeDir = "native/" + NativeObfuscator.getRandomString(6);
+            this.nativeNonDir = "dev/jnic";
+            this.nativeDir = "dev/jnic/" + NativeObfuscator.getRandomString(6);
             this.bootstrapMethodsPool = new BootstrapMethodsPool(this.nativeDir);
             this.staticClassProvider = new InterfaceStaticClassProvider(this.nativeDir);
             this.methodIndex = 1;
@@ -351,7 +352,7 @@ public class NativeObfuscator {
                     ClassNode resultLoaderClass = new ClassNode(458752);
                     final String originalLoaderClassName = rawClassNode.name;
                     if (StringUtils.contains(entry.getName(), "Loader")) {
-                        final String loaderClassName = this.nativeDir + "/Loader";
+                        final String loaderClassName = this.nativeDir + "/JNICLoader";
                         if (plainLibName != null) {
                             if (StringUtils.contains(entry.getName(), "LoaderPlain")) {
                                 rawClassNode.methods.forEach(method -> {
@@ -578,7 +579,7 @@ public class NativeObfuscator {
                 Enter(outputDir);
                 DataTool.compress(outputDir + separator + "build" + separator + "lib", outputDir + separator + "data.dat", Integer.getInteger("level", 1));
                 System.out.println("重新打包");
-                Util.writeEntry(out, this.nativeDir + "/data.dat", Files.readAllBytes(Paths.get(outputDir + separator + "data.dat", new String[0])));
+                Util.writeEntry(out, this.nativeNonDir + "data.dat", Files.readAllBytes(Paths.get(outputDir + separator + "data.dat", new String[0])));
                 try {
                     System.out.println("清理临时文件");
                     FileUtils.clearDirectory(outputDir + separator + "cpp");
@@ -634,7 +635,9 @@ public class NativeObfuscator {
     public String getNativeDir() {
         return this.nativeDir;
     }
-
+    public String getNonNativeDir() {
+        return this.nativeNonDir;
+    }
     public BootstrapMethodsPool getBootstrapMethodsPool() {
         return this.bootstrapMethodsPool;
     }

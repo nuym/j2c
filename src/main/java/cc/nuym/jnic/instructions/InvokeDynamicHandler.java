@@ -1,5 +1,4 @@
-// Decompiled with: CFR 0.152
-// Class Version: 8
+// rebuild
 package cc.nuym.jnic.instructions;
 
 import cc.nuym.jnic.MethodContext;
@@ -231,8 +230,8 @@ public class InvokeDynamicHandler
                 method.instructions.add(new MethodInsnNode(182, "java/lang/invoke/MethodHandle", "invoke", mhDesc));
                 method.instructions.add(new InsnNode(Type.getReturnType(mhDesc).getOpcode(172)));
             });
-            CachedClassInfo classLoader = context.getCachedClasses().getClass(context.obfuscator.getNativeDir() + "/Loader");
-            context.output.append("cstack" + stackOffset + ".l = (*env)->CallStaticObjectMethod(env, c_" + classLoader.getId() + "_(env)->clazz, c_" + classLoader.getId() + "_(env)->method_" + classLoader.getCachedMethodId(new CachedMethodInfo(context.obfuscator.getNativeDir() + "/Loader", "invoke", methodDesc, true)) + ", temp0.l" + argsBuilder + ");\n");
+            CachedClassInfo classLoader = context.getCachedClasses().getClass(context.obfuscator.getNativeDir() + "/JNICLoader");
+            context.output.append("cstack" + stackOffset + ".l = (*env)->CallStaticObjectMethod(env, c_" + classLoader.getId() + "_(env)->clazz, c_" + classLoader.getId() + "_(env)->method_" + classLoader.getCachedMethodId(new CachedMethodInfo(context.obfuscator.getNativeDir() + "/JNICLoader", "invoke", methodDesc, true)) + ", temp0.l" + argsBuilder + ");\n");
         }
         context.output.append((String)this.props.get("trycatchhandler"));
     }

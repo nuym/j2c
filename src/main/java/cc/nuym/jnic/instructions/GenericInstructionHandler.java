@@ -1,5 +1,4 @@
-// Decompiled with: CFR 0.152
-// Class Version: 8
+// rebuild
 package cc.nuym.jnic.instructions;
 
 import cc.nuym.jnic.CatchesBlock;

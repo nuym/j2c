@@ -11,7 +11,7 @@ public class InterfaceStaticClassProvider
     private final String nativeDir;
     private final List<ClassNode> readyClasses;
     private ClassNode currentClass;
-    private StringBuilder methods;
+private StringBuilder methods;
     
     public InterfaceStaticClassProvider(final String nativeDir) {
         this.nativeDir = nativeDir;

@@ -1,5 +1,4 @@
-// Decompiled with: CFR 0.152
-// Class Version: 8
+// rebuild
 package cc.nuym.jnic.helpers;
 
 import cc.nuym.jnic.env.SetupManager;
