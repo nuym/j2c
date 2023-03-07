@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 public class Zipper
 {
@@ -76,6 +77,18 @@ public class Zipper
             final Path dir = entryPath.getParent();
             Files.createDirectories(dir, (FileAttribute<?>[])new FileAttribute[0]);
             Files.copy(in, entryPath, new CopyOption[0]);
+        }
+    }
+    public static void writeToFile(ZipOutputStream outputStream, InputStream inputStream) throws Throwable {
+        byte[] buffer = new byte[4096];
+        try {
+            while (inputStream.available() > 0) {
+                int data = inputStream.read(buffer);
+                outputStream.write(buffer, 0, data);
+            }
+        } finally {
+            inputStream.close();
+            outputStream.closeEntry();
         }
     }
 }

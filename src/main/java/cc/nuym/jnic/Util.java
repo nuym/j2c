@@ -1,5 +1,6 @@
 // rebuild
 package cc.nuym.jnic;
+import cc.nuym.jnic.utils.Zipper;
 import org.objectweb.asm.Opcodes;
 
 import java.io.ByteArrayOutputStream;
@@ -23,6 +24,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class Util {
@@ -103,6 +105,20 @@ public class Util {
             Util.transfer(in, out);
         }
         out.closeEntry();
+    }
+
+    //TODO: 实现紫水晶class转folder
+    public static void class2folder(JarFile f, ZipOutputStream zipOutput, JarEntry entry) throws IOException {
+        if (entry.getName().endsWith(".class")) {
+            ZipEntry newEntry = new ZipEntry(entry.getName().replace(".class", ".class/"));
+            newEntry.setTime(System.currentTimeMillis());
+            zipOutput.putNextEntry(newEntry);
+            try {
+                Zipper.writeToFile(zipOutput, f.getInputStream(entry));
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public static void writeEntry(ZipOutputStream out, String entryName, byte[] data) throws IOException {

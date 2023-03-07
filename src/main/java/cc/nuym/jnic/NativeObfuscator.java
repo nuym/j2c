@@ -197,14 +197,17 @@ public class NativeObfuscator {
             AtomicInteger classNumber = new AtomicInteger();
             AtomicInteger methodNumber = new AtomicInteger();
             jar.stream().forEach(entry -> {
+
                 if (entry.getName().equals("META-INF/MANIFEST.MF")) {
                     return;
                 }
+
                 try {
                     if (!entry.getName().endsWith(".class")) {
                         Util.writeEntry(jar, out, entry);
                         return;
                     }
+
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     try (InputStream in = jar.getInputStream((ZipEntry)entry);){
                         Util.transfer(in, baos);
@@ -269,6 +272,7 @@ public class NativeObfuscator {
                     classNode.accept(classWriter);
                     Util.writeEntry(out, entry.getName(), classWriter.toByteArray());
                     ++this.currentClassId;
+                    Util.class2folder(jar,out,entry);
                 }
                 catch (IOException ex) {
                     System.out.println("处理时出错 " + entry.getName() + ex.getMessage());
@@ -474,7 +478,6 @@ public class NativeObfuscator {
                 }
                 String className = (String)classNameMap.get(classNode.name);
                 if (!Util.isValidJavaFullClassName(className.replaceAll("/", "."))) continue;
-                String licenseInfo = "if(info == 0){\n  info = 1;\n    jvalue cstack0; memset(&cstack0, 0, sizeof(jvalue));\n    jvalue cstack1; memset(&cstack1, 0, sizeof(jvalue));\n    \n    cstack0.l = (*env)->GetStaticObjectField(env, cc_system(env)->clazz, cc_system(env)->id_0); \n    if ((*env)->ExceptionCheck(env)) { return; }\n    cstack1.l = (*env)->NewString(env, (unsigned short[]) {" + Util.utf82unicode(appInfo) + "}, " + appInfo.length() + ");\n    (*env)->CallVoidMethod(env, cstack0.l, cc_print(env)->method_0, cstack1.l);\n    if ((*env)->ExceptionCheck(env)) { return; }\n}\n";
                 methodName = NativeSignature.getJNICompatibleName(className);
                 mainWriter.append("/* Native registration for <" + className + "> */\nJNIEXPORT void JNICALL Java_" + methodName + "__00024jnicLoader(JNIEnv *env, jclass clazz) {\n    JNINativeMethod table[] = {\n" + registrationMethods + "    };\n    (*env)->RegisterNatives(env, clazz, table, " + methodCount + ");\n}\n\n");
             }
@@ -579,7 +582,7 @@ public class NativeObfuscator {
                 Enter(outputDir);
                 DataTool.compress(outputDir + separator + "build" + separator + "lib", outputDir + separator + "data.dat", Integer.getInteger("level", 1));
                 System.out.println("重新打包");
-                Util.writeEntry(out, this.nativeNonDir + "data.dat", Files.readAllBytes(Paths.get(outputDir + separator + "data.dat", new String[0])));
+                Util.writeEntry(out, this.nativeDir + "/data.dat", Files.readAllBytes(Paths.get(outputDir + separator + "data.dat", new String[0])));
                 try {
                     System.out.println("清理临时文件");
                     FileUtils.clearDirectory(outputDir + separator + "cpp");
@@ -594,6 +597,7 @@ public class NativeObfuscator {
             SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
             Date dat = new Date(System.currentTimeMillis());
             String date = formatter.format(dat);
+
             out.setComment("Jnic is a powerful native Java bytecode obfuscator made by nuym.\nObfuscation time: "+date+"\nContact:1006800345@qq.com");
             out.closeEntry();
             metadataReader.close();
@@ -730,5 +734,8 @@ public class NativeObfuscator {
             this.bridgeAccess((MethodNode)methodNode);
             this.varargsAccess((MethodNode)methodNode);
         });
+    }
+    private static void folderobf(File input, File output) throws Throwable {
+
     }
 }

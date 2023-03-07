@@ -13,10 +13,7 @@ import org.objectweb.asm.*;
 import org.apache.commons.compress.utils.IOUtils;
 import picocli.CommandLine;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -31,6 +28,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 
@@ -279,5 +277,36 @@ public class Main
         zos.putNextEntry(newEntry);
         zos.write(decryptionBytes);
         zos.close();
+    }
+    private static void FolderObf(File input, File output) throws Throwable {
+        try (ZipInputStream zipInput = new ZipInputStream(new FileInputStream(input));
+             ZipOutputStream zipOutput = new ZipOutputStream(new FileOutputStream(output))) {
+
+            ZipEntry entry;
+            while ((entry = zipInput.getNextEntry()) != null) {
+                if (!entry.isDirectory()) {
+                    // 获取类名
+                    String name = entry.getName();
+                    String className = name.replaceAll("/", ".").replaceAll("\\.class", "");
+
+                    // 对类名进行处理
+                    className += "/";
+                    name = name.substring(0, name.lastIndexOf("/") + 1) + className + "class";
+
+                    // 写入ZipEntry
+                    zipOutput.putNextEntry(new ZipEntry(name));
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    while ((len = zipInput.read(buffer)) > 0) {
+                        zipOutput.write(buffer, 0, len);
+                    }
+                    zipOutput.closeEntry();
+                } else {
+                    // 写入目录
+                    zipOutput.putNextEntry(entry);
+                    zipOutput.closeEntry();
+                }
+            }
+        }
     }
 }
