@@ -15,6 +15,7 @@ import picocli.CommandLine;
 
 import java.io.*;
 import java.lang.reflect.Array;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.FileAttribute;
@@ -36,6 +37,7 @@ public class Main
 {
     public static final String VERSION = "2022.1009.05";
     private static final char[] DIGITS;
+    static File output;
     
     public static void main(final String[] args) {
         final String processors =
@@ -187,7 +189,14 @@ public class Main
                         outFile.renameTo(new File(this.outputDirectory + ".BACKUP"));
                     }
                 }
+                //开始处理
                 new NativeObfuscator().process(this.jarFile.toPath(), Paths.get(this.outputDirectory, new String[0]), configInfo, libs, this.libraryName, this.useAnnotations);
+                try {
+                    String jarName = this.jarFile.getName().substring(0, this.jarFile.getName().length() - 4);
+                    obf(new File(outputDirectory+"\\"+this.jarFile.getName()), new File(outputDirectory+"\\"+jarName+"-enc.jar"));
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                }
                 return 0;
             }
             final Path path = Files.createFile(this.config.toPath(), (FileAttribute<?>[])new FileAttribute[0]);
@@ -199,10 +208,42 @@ public class Main
         }
     }
 
-    // stringenc-antitamper https://github.com/ItzSomebody/stringenc-antitamper
+    // DO NOT SUPPORT JDK 1.9+!!!! BE-CAREFUL
+
+    private static void FolderObf(File input, File output) throws Throwable {
+        try (ZipInputStream zipInput = new ZipInputStream(new FileInputStream(input));
+             ZipOutputStream zipOutput = new ZipOutputStream(new FileOutputStream(output))) {
+
+            ZipEntry entry;
+            while ((entry = zipInput.getNextEntry()) != null) {
+                if (!entry.isDirectory()) {
+                    // 获取类名
+                    String name = entry.getName();
+                    String className = name.replaceAll("/", ".").replaceAll("\\.class", "");
+
+                    // 对类名进行处理
+                    className += "/";
+                    name = name.substring(0, name.lastIndexOf("/") + 1) + className + "class";
+
+                    // 写入ZipEntry
+                    zipOutput.putNextEntry(new ZipEntry(name));
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    while ((len = zipInput.read(buffer)) > 0) {
+                        zipOutput.write(buffer, 0, len);
+                    }
+                    zipOutput.closeEntry();
+                } else {
+                    // 写入目录
+                    zipOutput.putNextEntry(entry);
+                    zipOutput.closeEntry();
+                }
+            }
+        }
+    }
     private static void obf(File input, File output) throws Throwable {
         ZipFile zipFile = new ZipFile(input);
-        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(output));
+        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(output), Charset.forName("UTF-8"));
         Map<String, ClassNode> classes = new HashMap<>();
         long current = System.currentTimeMillis();
 
@@ -277,36 +318,5 @@ public class Main
         zos.putNextEntry(newEntry);
         zos.write(decryptionBytes);
         zos.close();
-    }
-    private static void FolderObf(File input, File output) throws Throwable {
-        try (ZipInputStream zipInput = new ZipInputStream(new FileInputStream(input));
-             ZipOutputStream zipOutput = new ZipOutputStream(new FileOutputStream(output))) {
-
-            ZipEntry entry;
-            while ((entry = zipInput.getNextEntry()) != null) {
-                if (!entry.isDirectory()) {
-                    // 获取类名
-                    String name = entry.getName();
-                    String className = name.replaceAll("/", ".").replaceAll("\\.class", "");
-
-                    // 对类名进行处理
-                    className += "/";
-                    name = name.substring(0, name.lastIndexOf("/") + 1) + className + "class";
-
-                    // 写入ZipEntry
-                    zipOutput.putNextEntry(new ZipEntry(name));
-                    byte[] buffer = new byte[1024];
-                    int len;
-                    while ((len = zipInput.read(buffer)) > 0) {
-                        zipOutput.write(buffer, 0, len);
-                    }
-                    zipOutput.closeEntry();
-                } else {
-                    // 写入目录
-                    zipOutput.putNextEntry(entry);
-                    zipOutput.closeEntry();
-                }
-            }
-        }
     }
 }

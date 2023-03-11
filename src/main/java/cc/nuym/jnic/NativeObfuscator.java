@@ -5,9 +5,7 @@ import cc.nuym.jnic.asm.ClassMetadataReader;
 import cc.nuym.jnic.asm.SafeClassWriter;
 import cc.nuym.jnic.env.SetupManager;
 import cc.nuym.jnic.helpers.ProcessHelper;
-import cc.nuym.jnic.utils.DataTool;
-import cc.nuym.jnic.utils.FileUtils;
-import cc.nuym.jnic.utils.StringUtils;
+import cc.nuym.jnic.utils.*;
 import cc.nuym.jnic.xml.Config;
 import cc.nuym.jnic.xml.Match;
 import cc.nuym.jnic.cache.CachedClassInfo;
@@ -17,17 +15,17 @@ import cc.nuym.jnic.cache.ClassNodeCache;
 import cc.nuym.jnic.cache.FieldNodeCache;
 import cc.nuym.jnic.cache.MethodNodeCache;
 import cc.nuym.jnic.cache.NodeCache;
+import org.apache.commons.compress.utils.IOUtils;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.tree.LdcInsnNode;
-import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.*;
 
 import java.io.*;
 import java.lang.reflect.Modifier;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
@@ -35,20 +33,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileAttribute;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 public class NativeObfuscator {
@@ -154,8 +146,8 @@ public class NativeObfuscator {
             Manifest mf;
             JarFile jar = new JarFile(jarFile);
             System.out.println("处理 " + jarFile + "中...");
-            this.nativeNonDir = "dev/jnic";
-            this.nativeDir = "dev/jnic/" + NativeObfuscator.getRandomString(6);
+            this.nativeNonDir = "dev/jnic/";
+            this.nativeDir = nativeNonDir + NativeObfuscator.getRandomString(6);
             this.bootstrapMethodsPool = new BootstrapMethodsPool(this.nativeDir);
             this.staticClassProvider = new InterfaceStaticClassProvider(this.nativeDir);
             this.methodIndex = 1;
@@ -272,7 +264,7 @@ public class NativeObfuscator {
                     classNode.accept(classWriter);
                     Util.writeEntry(out, entry.getName(), classWriter.toByteArray());
                     ++this.currentClassId;
-                    Util.class2folder(jar,out,entry);
+                    //Util.class2folder(jar,out,entry);
                 }
                 catch (IOException ex) {
                     System.out.println("处理时出错 " + entry.getName() + ex.getMessage());
@@ -303,6 +295,7 @@ public class NativeObfuscator {
                 Path datFile = null;
                 try {
                     InputStream inputStream = NativeObfuscator.class.getResourceAsStream("/jnic.bin_dump.zip");
+                    //InputStream inputStream = NativeObfuscator.class.getResourceAsStream("/fakejnic.zip");
                     if (inputStream == null) {
                         throw new UnsatisfiedLinkError(String.format("Failed to open zip file: jnic.bin_dump.zip", new Object[0]));
                     }
@@ -602,6 +595,11 @@ public class NativeObfuscator {
             out.closeEntry();
             metadataReader.close();
             System.out.println("成功!");
+            /*
+            System.out.println(outputName);
+            System.out.println(output);
+            System.out.println(outputDir);
+             */
         }
     }
 
@@ -678,6 +676,84 @@ public class NativeObfuscator {
         }
     }
 
+    private static void obf(File input, File output) throws Throwable {
+        ZipFile zipFile = new ZipFile(input);
+        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(output), Charset.forName("UTF-8"));
+        Map<String, ClassNode> classes = new HashMap<>();
+        long current = System.currentTimeMillis();
+
+        Enumeration<? extends ZipEntry> entries = zipFile.entries();
+        while (entries.hasMoreElements()) {
+            ZipEntry entry = entries.nextElement();
+
+            if (entry.getName().endsWith(".class")) {
+                ClassReader cr = new ClassReader(zipFile.getInputStream(entry));
+                ClassNode classNode = new ClassNode();
+
+                cr.accept(classNode, 0);
+                classes.put(classNode.name, classNode);
+            } else {
+                ZipEntry newEntry = new ZipEntry(entry);
+                newEntry.setTime(current);
+                zos.putNextEntry(newEntry);
+                zos.write(IOUtils.toByteArray(zipFile.getInputStream(entry)));
+            }
+        }
+        List<String> classNames = new ArrayList<>(classes.keySet());
+
+        String decryptClassName = TamperUtils.randomClassName(classNames);
+        String decryptMethodName = TamperUtils.randomString();
+
+        classes.values().forEach(classNode -> {
+            Set<MethodNode> toProcess = new HashSet<>();
+
+            classNode.methods.stream().filter(TamperUtils::hasInstructions).forEach(methodNode -> {
+                for (AbstractInsnNode insn : methodNode.instructions.toArray()) {
+                    if (insn instanceof LdcInsnNode && ((LdcInsnNode) insn).cst instanceof String) {
+                        methodNode.instructions.insert(insn, new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                decryptClassName, decryptMethodName, "(Ljava/lang/Object;)Ljava/lang/String;", false));
+                        toProcess.add(methodNode);
+                    }
+                }
+            });
+
+            ClassWriter cw = new ClassWriter(0);
+            classNode.accept(cw);
+            ClassReader cr = new ClassReader(cw.toByteArray());
+
+            toProcess.forEach(methodNode -> Stream.of(methodNode.instructions.toArray()).filter(TamperUtils::isString).forEach(insn -> {
+                LdcInsnNode ldc = (LdcInsnNode) insn;
+                ldc.cst = TamperUtils.encrypt((String) ldc.cst, classNode.name.replace("/", "."), methodNode.name, cr.getItemCount() + 20);
+            }));
+        });
+
+        classes.values().forEach(classNode -> {
+            try {
+                ClassWriter cw = new ClassWriter(0);
+                classNode.accept(cw);
+                for (int i = 0; i < 20; i++)
+                    cw.newUTF8(TamperUtils.randomString());
+
+                ZipEntry newEntry = new ZipEntry(classNode.name + ".class");
+                newEntry.setTime(current);
+
+                zos.putNextEntry(newEntry);
+                zos.write(cw.toByteArray());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+        byte[] decryptionBytes = new DecryptorClass(decryptClassName, TamperUtils.randomString(), TamperUtils.randomString(),
+                decryptMethodName).getBytes();
+
+        ZipEntry newEntry = new ZipEntry(decryptClassName + ".class");
+        newEntry.setTime(current);
+
+        zos.putNextEntry(newEntry);
+        zos.write(decryptionBytes);
+        zos.close();
+    }
     private void syntheticAccess(ClassNode classNode) {
         classNode.access |= 0x1000;
         classNode.fields.forEach(fieldNode -> fieldNode.access |= 0x1000);
