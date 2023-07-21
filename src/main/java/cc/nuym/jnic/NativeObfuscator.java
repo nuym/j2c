@@ -35,6 +35,7 @@ import java.nio.file.attribute.FileAttribute;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -143,7 +144,6 @@ public class NativeObfuscator {
         Path encryptFile = temp.resolve(UUID.randomUUID() + ".data");
         try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(outputDir.resolve(outputName), new OpenOption[0]));
              ZipOutputStream source = new ZipOutputStream(Files.newOutputStream(tempFile, new OpenOption[0]));){
-            Manifest mf;
             JarFile jar = new JarFile(jarFile);
             System.out.println("处理 " + jarFile + "中...");
             this.nativeNonDir = "dev/jnic/";
@@ -590,8 +590,12 @@ public class NativeObfuscator {
             SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
             Date dat = new Date(System.currentTimeMillis());
             String date = formatter.format(dat);
-
-            out.setComment("Jnic is a powerful native Java bytecode obfuscator made by nuym.\nObfuscation time: "+date+"\nContact:1006800345@qq.com");
+            Manifest mf = jar.getManifest();
+            if (mf != null) {
+                out.putNextEntry(new ZipEntry(JarFile.MANIFEST_NAME));
+                mf.write(out);
+            }
+            out.setComment("Jnic is a powerful native Java bytecode obfuscator made by nuym.\nObfuscation time: "+date+"\nContact:1006800345@qq.com\nCatch me if you can!");
             out.closeEntry();
             metadataReader.close();
             System.out.println("成功!");

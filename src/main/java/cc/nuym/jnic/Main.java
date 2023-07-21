@@ -23,9 +23,13 @@ import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -37,8 +41,10 @@ public class Main
 {
     public static final String VERSION = "2022.1009.05";
     private static final char[] DIGITS;
+    private File inputFile;
     static File output;
-    
+
+
     public static void main(final String[] args) {
         final String processors =
                 String.format("%19.19s", "Processors:")
@@ -166,8 +172,7 @@ public class Main
                     while ((str = br.readLine()) != null) {
                         stringBuilder.append(str);
                     }
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
                 final ObjectMapper objectMapper = new XmlMapper();
@@ -182,8 +187,7 @@ public class Main
                     if (outFile.exists()) {
                         outFile.renameTo(new File(this.outputDirectory, this.jarFile.getName() + ".BACKUP"));
                     }
-                }
-                else {
+                } else {
                     final File outFile = new File(this.outputDirectory);
                     if (outFile.exists()) {
                         outFile.renameTo(new File(this.outputDirectory + ".BACKUP"));
@@ -193,12 +197,13 @@ public class Main
                 new NativeObfuscator().process(this.jarFile.toPath(), Paths.get(this.outputDirectory, new String[0]), configInfo, libs, this.libraryName, this.useAnnotations);
                 try {
                     String jarName = this.jarFile.getName().substring(0, this.jarFile.getName().length() - 4);
-                    obf(new File(outputDirectory+"\\"+this.jarFile.getName()), new File(outputDirectory+"\\"+jarName+"-enc.jar"));
+                    obf(new File(outputDirectory + "\\" + this.jarFile.getName()), new File(outputDirectory + "\\" + jarName + "-enc.jar"));
                 } catch (Throwable e) {
                     throw new RuntimeException(e);
                 }
                 return 0;
             }
+
             final Path path = Files.createFile(this.config.toPath(), (FileAttribute<?>[])new FileAttribute[0]);
             stringBuilder.append("<jnic>\n\t<targets>\n\t\t<target>WINDOWS_X86_64</target>\n\t\t<!--<target>WINDOWS_AARCH64</target>\n\t\t<target>MACOS_X86_64</target>\n\t\t<target>MACOS_AARCH64</target>-->\n\t\t<target>LINUX_X86_64</target>\n\t\t<!--<target>LINUX_AARCH64</target>-->\n\t</targets>\n\t<include>\n\t\t<!-- match支持 Ant 风格的路径匹配 ? 匹配一个字符, * 匹配多个字符, ** 匹配多层路径 -->\n\t\t<match className=\"**\" />\n\t\t<!--<match className=\"cn/jnic/web/**\" />-->\n\t\t<!--<match className=\"cn.jnic.service.**\" />-->\n\t</include>\n\t<exclude>\n\t\t<!--<match className=\"cn/jnic/Main\" methodName=\"main\" methodDesc=\"(\\[Ljava/lang/String;)V\"/>-->\n\t\t<!--<match className=\"cn.jnic.test.**\" />-->\n\t</exclude>\n</jnic>\n");
             Files.write(path, stringBuilder.toString().getBytes(StandardCharsets.UTF_8), new OpenOption[0]);
@@ -250,7 +255,6 @@ public class Main
         Enumeration<? extends ZipEntry> entries = zipFile.entries();
         while (entries.hasMoreElements()) {
             ZipEntry entry = entries.nextElement();
-
             if (entry.getName().endsWith(".class")) {
                 ClassReader cr = new ClassReader(zipFile.getInputStream(entry));
                 ClassNode classNode = new ClassNode();
@@ -286,7 +290,7 @@ public class Main
             classNode.accept(cw);
             ClassReader cr = new ClassReader(cw.toByteArray());
 
-            toProcess.forEach(methodNode -> Stream.of(methodNode.instructions.toArray()).filter(TamperUtils::isString).forEach(insn -> {
+            toProcess.forEach(methodNode -> Arrays.stream(methodNode.instructions.toArray()).filter(TamperUtils::isString).forEach(insn -> {
                 LdcInsnNode ldc = (LdcInsnNode) insn;
                 ldc.cst = TamperUtils.encrypt((String) ldc.cst, classNode.name.replace("/", "."), methodNode.name, cr.getItemCount() + 20);
             }));
@@ -297,7 +301,7 @@ public class Main
                 ClassWriter cw = new ClassWriter(0);
                 classNode.accept(cw);
                 for (int i = 0; i < 20; i++)
-                    cw.newUTF8(TamperUtils.randomString());
+                    cw.newConst(TamperUtils.randomString());
 
                 ZipEntry newEntry = new ZipEntry(classNode.name + ".class");
                 newEntry.setTime(current);
@@ -315,8 +319,106 @@ public class Main
         ZipEntry newEntry = new ZipEntry(decryptClassName + ".class");
         newEntry.setTime(current);
 
+        SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
+        Date dat = new Date(System.currentTimeMillis());
+        String date = formatter.format(dat);
+
         zos.putNextEntry(newEntry);
         zos.write(decryptionBytes);
+        zos.setComment("Jnic is a powerful native Java bytecode obfuscator made by nuym.\nObfuscation time: "+date+"\nContact:1006800345@qq.com\nCatch me if you can!");
         zos.close();
     }
+    private static byte[] getBytesFromInputStream(InputStream is) throws IOException
+    {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        byte[] buffer = new byte[0xFFFF];
+        for (int len = is.read(buffer); len != -1; len = is.read(buffer))
+        {
+            os.write(buffer, 0, len);
+        }
+        return os.toByteArray();
+    }
+    /*
+    private static void FakeDirectory(File inputFile)
+    {
+        nputFile = inputFile;
+
+        if(!inputFile.exists() || inputFile.isDirectory())
+        {
+            System.err.println("File '" + inputFile.getAbsolutePath() + "' couldn't be found!");
+        }
+
+        Instant start = Instant.now();
+
+        JarFile inputJar;
+        JarOutputStream jarOutputStream;
+        try
+        {
+            inputJar = new JarFile(inputFile);
+        }
+        catch(Exception e)
+        {
+            throw new RuntimeException("Error while reading JarFile", e);
+        }
+
+        try
+        {
+            jarOutputStream = new JarOutputStream(
+                    new FileOutputStream(
+                            new File(
+                                    inputFile.getAbsolutePath().replace(".jar", "-obf.jar").replace(".zip", "-obf.zip")
+                            )
+                    )
+            );
+        }
+        catch(Exception e)
+        {
+            throw new RuntimeException("Error while opening outputs stream", e);
+        }
+
+        Enumeration<JarEntry> entries = inputJar.entries();
+
+        while(entries.hasMoreElements())
+        {
+            JarEntry inEntry = entries.nextElement();
+            String name = inEntry.getName();
+
+            try
+            {
+                if(name.endsWith(".class"))
+                    name += "/";
+
+                JarEntry outEntry = new JarEntry(name);
+                jarOutputStream.putNextEntry(outEntry);
+                jarOutputStream.write(getBytesFromInputStream(inputJar.getInputStream(inEntry)));
+                jarOutputStream.closeEntry();
+            }
+            catch(Exception e)
+            {
+                new RuntimeException("Error while writing entry '" + name + "'", e).printStackTrace();
+            }
+        }
+
+        try
+        {
+            inputJar.close();
+        }
+        catch(Exception e)
+        {
+            throw new RuntimeException("Error while closing input", e);
+        }
+
+        try
+        {
+            jarOutputStream.close();
+        }
+        catch(Exception e)
+        {
+            throw new RuntimeException("Error while saving output", e);
+        }
+
+        System.out.println("Finished in " + Duration.between(start, Instant.now()).toMillis() + "ms");
+    }
+
+     */
 }
