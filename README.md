@@ -1,6 +1,9 @@
 # Jnic
 一个强大的本地Java字节码混淆器。
 
+# English
+This is a program developed after Jnic.dev, it has a lot of problems, but does not affect the operation of the program, does not support the judgment of obfuscated Java programs (such as Minecraft MOD). 
+
 ---
 ### 构建
 请使用 JDK 1.8 和 Gradle 进行构建
