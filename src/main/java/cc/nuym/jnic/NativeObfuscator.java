@@ -27,11 +27,8 @@ import java.io.*;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileAttribute;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -51,19 +48,19 @@ public class NativeObfuscator {
     private final ClassNodeCache cachedClasses;
     private final MethodNodeCache cachedMethods;
     private final FieldNodeCache cachedFields;
-    private Map<String, String> classMethodNameMap = new HashMap<String, String>();
-    private Map<String, String> noInitClassMap = new HashMap<String, String>();
+    private final Map<String, String> classMethodNameMap = new HashMap<String, String>();
+    private final Map<String, String> noInitClassMap = new HashMap<String, String>();
     private StringBuilder nativeMethods;
     private BootstrapMethodsPool bootstrapMethodsPool;
     private int currentClassId;
     private int methodIndex;
     private String nativeDir;
     private String nativeNonDir;
-    private static String separator = File.separator;
+    private static final String separator = File.separator;
 
     public NativeObfuscator() {
         this.snippets = new Snippets();
-        this.cachedStrings = new NodeCache("(cstrings[%d])");
+        this.cachedStrings = new NodeCache<>("(cstrings[%d])");
         this.cachedClasses = new ClassNodeCache("(cclasses[%d])");
         this.cachedMethods = new MethodNodeCache("(cmethods[%d])", this.cachedClasses);
         this.cachedFields = new FieldNodeCache("(cfields[%d])", this.cachedClasses);
@@ -82,12 +79,12 @@ public class NativeObfuscator {
                     stringBuilder.append(match.getClassName().replaceAll("\\.", "/"));
                 }
                 if (StringUtils.isNotEmpty(match.getMethodName())) {
-                    stringBuilder.append("#" + match.getMethodName());
+                    stringBuilder.append("#").append(match.getMethodName());
                     if (StringUtils.isNotEmpty(match.getMethodDesc())) {
-                        stringBuilder.append("!" + match.getMethodDesc());
+                        stringBuilder.append("!").append(match.getMethodDesc());
                     }
                 } else if (StringUtils.isNotEmpty(match.getMethodDesc())) {
-                    stringBuilder.append("#**!" + match.getMethodDesc());
+                    stringBuilder.append("#**!").append(match.getMethodDesc());
                 }
                 whiteList.add(stringBuilder.toString());
             }
@@ -100,12 +97,12 @@ public class NativeObfuscator {
                     stringBuilder.append(include.getClassName().replaceAll("\\.", "/"));
                 }
                 if (StringUtils.isNotEmpty(include.getMethodName())) {
-                    stringBuilder.append("#" + include.getMethodName());
+                    stringBuilder.append("#").append(include.getMethodName());
                     if (StringUtils.isNotEmpty(include.getMethodDesc())) {
-                        stringBuilder.append("!" + include.getMethodDesc());
+                        stringBuilder.append("!").append(include.getMethodDesc());
                     }
                 } else if (StringUtils.isNotEmpty(include.getMethodDesc())) {
-                    stringBuilder.append("#**!" + include.getMethodDesc());
+                    stringBuilder.append("#**!").append(include.getMethodDesc());
                 }
                 blackList.add(stringBuilder.toString());
             }
@@ -132,21 +129,21 @@ public class NativeObfuscator {
             outputName = output.getFileName().toString();
         }
         Path cppDir = outputDir.resolve("cpp");
-        Files.createDirectories(cppDir, new FileAttribute[0]);
+        Files.createDirectories(cppDir);
         Util.copyResource("jni.h", cppDir);
         HashMap map = new HashMap();
         HashMap classNameMap = new HashMap();
         StringBuilder instructions = new StringBuilder();
         File jarFile = inputJarPath.toAbsolutePath().toFile();
-        Path temp = Files.createTempDirectory("native-jnic-", new FileAttribute[0]);
+        Path temp = Files.createTempDirectory("native-jnic-");
         Path tempFile = temp.resolve(UUID.randomUUID() + ".data");
         Path encryptFile = temp.resolve(UUID.randomUUID() + ".data");
-        try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(outputDir.resolve(outputName), new OpenOption[0]));
-             ZipOutputStream source = new ZipOutputStream(Files.newOutputStream(tempFile, new OpenOption[0]));){
+        try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(outputDir.resolve(outputName)));
+             ZipOutputStream source = new ZipOutputStream(Files.newOutputStream(tempFile));){
             JarFile jar = new JarFile(jarFile);
             System.out.println("处理 " + jarFile + "中...");
             this.nativeNonDir = "dev/jnic/";
-            this.nativeDir = nativeNonDir + NativeObfuscator.getRandomString(6);
+            this.nativeDir = nativeNonDir + NativeObfuscator.getRandomString();
             this.bootstrapMethodsPool = new BootstrapMethodsPool(this.nativeDir);
             this.staticClassProvider = new InterfaceStaticClassProvider(this.nativeDir);
             this.methodIndex = 1;
@@ -236,7 +233,7 @@ public class NativeObfuscator {
                     this.staticClassProvider.newClass();
                     map.put(classNode.name, classNode);
                     classNameMap.put(classNode.name, classReader.getClassName());
-                    instructions.append("\n//" + classNode.name + "\n");
+                    instructions.append("\n//").append(classNode.name).append("\n");
                     for (int i = 0; i < classNode.methods.size(); ++i) {
                         MethodNode method2 = classNode.methods.get(i);
                         if (!MethodProcessor.shouldProcess(method2) || !classMethodFilter.shouldProcess(classNode, method2) && !"<clinit>".equals(method2.name)) continue;
@@ -271,8 +268,9 @@ public class NativeObfuscator {
             });
             source.flush();
             source.close();
-            if (!Files.exists(Paths.get(outputDir + separator + "build" + separator + "lib", new String[0]), new LinkOption[0])) {
-                Files.createDirectories(Paths.get(outputDir + separator + "build" + separator + "lib", new String[0]), new FileAttribute[0]);
+            Path dir = Paths.get(outputDir + separator + "build" + separator + "lib");
+            if (!Files.exists(dir)) {
+                Files.createDirectories(dir);
             }
             try {
                 FileUtils.encryptFile(tempFile, encryptFile, "NuymPowerd");
@@ -289,7 +287,7 @@ public class NativeObfuscator {
                 ifaceStaticClass.accept(classWriter);
                 Util.writeEntry(out, ifaceStaticClass.name + ".class", classWriter.toByteArray());
             }
-            Path loader = Files.createTempFile("bin", null, new FileAttribute[0]);
+            Path loader = Files.createTempFile("bin", null);
             try {
                 byte[] arrayOfByte = new byte[2048];
                 Path datFile = null;
@@ -297,21 +295,17 @@ public class NativeObfuscator {
                     InputStream inputStream = NativeObfuscator.class.getResourceAsStream("/jnic.bin_dump.zip");
                     //InputStream inputStream = NativeObfuscator.class.getResourceAsStream("/fakejnic.zip");
                     if (inputStream == null) {
-                        throw new UnsatisfiedLinkError(String.format("Loader-1.0-SNAPSHOT.zip", new Object[0]));
+                        throw new UnsatisfiedLinkError("jnic.bin_dump.zip");
                     }
                     try {
                         int size;
-                        datFile = Files.createTempFile("dat", null, new FileAttribute[0]);
+                        datFile = Files.createTempFile("dat", null);
                         FileOutputStream fileOutputStream = new FileOutputStream(datFile.toFile());
                         while ((size = inputStream.read(arrayOfByte)) != -1) {
                             fileOutputStream.write(arrayOfByte, 0, size);
                         }
                         fileOutputStream.close();
-                    }
-                    catch (Throwable throwable) {
-                        throw throwable;
-                    }
-                    finally {
+                    } finally {
                         inputStream.close();
                     }
                 }
@@ -319,7 +313,7 @@ public class NativeObfuscator {
                     throw new UnsatisfiedLinkError(String.format("Failed to copy file: %s", exception.getMessage()));
                 }
                 final byte[] fileContent = Files.readAllBytes(datFile);
-                Files.write(loader, fileContent, new OpenOption[0]);
+                Files.write(loader, fileContent);
 
                 Files.deleteIfExists(datFile);
             }
@@ -418,29 +412,24 @@ public class NativeObfuscator {
             System.out.println("找到共 " + classNumber.get() + " classes 和 " + methodNumber.get() + " 将要被混淆的方法");
             System.out.println("您正在使用企业版本！\n");
             System.out.println("将类翻译成C代码");
-            BufferedWriter mainWriter = Files.newBufferedWriter(cppDir.resolve("jnic.c"), new OpenOption[0]);
+            BufferedWriter mainWriter = Files.newBufferedWriter(cppDir.resolve("jnic.c"));
             mainWriter.append("#include <jni.h>\n#include <stdatomic.h>\n#include <string.h>\n#include <time.h>\n#include <stdbool.h>\n#include <math.h>\n\n");
-            String appInfo = "";
-            if (!"".equals(appInfo)) {
-                mainWriter.append("struct cached_system {\n    jclass clazz;\n    jfieldID id_0;\n};\n\nstatic const struct cached_system* cc_system(JNIEnv *env) {\n    static struct cached_system cache;\n    static atomic_flag lock;\n    if (cache.clazz) return &cache;\n\n    jclass clazz = (*env)->FindClass(env, \"java/lang/System\");\n    while (atomic_flag_test_and_set(&lock)) {}\n    if (!cache.clazz) {\n        cache.clazz = (*env)->NewGlobalRef(env, clazz);\n        cache.id_0 = (*env)->GetStaticFieldID(env, clazz, \"out\", \"Ljava/io/PrintStream;\");\n    }\n    atomic_flag_clear(&lock);\n    return &cache;\n}\n\nstruct cached_print {\n    jclass clazz;\n    jmethodID method_0;\n};\n\nstatic const struct cached_print* cc_print(JNIEnv *env) {\n    static struct cached_print cache;\n    static atomic_flag lock;\n    if (cache.clazz) return &cache;\n\n    jclass clazz = (*env)->FindClass(env, \"java/io/PrintStream\");\n    while (atomic_flag_test_and_set(&lock)) {}\n    if (!cache.clazz) {\n        cache.clazz = (*env)->NewGlobalRef(env, clazz);\n        cache.method_0 = (*env)->GetMethodID(env, clazz, \"println\", \"(Ljava/lang/String;)V\");\n    }\n    atomic_flag_clear(&lock);\n    return &cache;\n}");
-            }
             mainWriter.append("void throw_exception(JNIEnv *env, const char *exception, const char *error, int line) {\n        jclass exception_ptr = (*env)->FindClass(env, exception);\n        if ((*env)->ExceptionCheck(env)) {\n            (*env)->ExceptionDescribe(env);\n            (*env)->ExceptionClear(env);\n            return;\n        }\n        char str[strlen(error) + 10];\n        sprintf(str, \"%s on %d\", error, line);\n        (*env)->ThrowNew(env, exception_ptr,  str);\n        (*env)->DeleteLocalRef(env, exception_ptr);\n    }\n\n");
             for (Map.Entry<String, CachedClassInfo> next : this.cachedClasses.getCache().entrySet()) {
                 int id = next.getValue().getId();
-                String fieldStr = "";
+                StringBuilder fieldStr = new StringBuilder();
                 List<CachedFieldInfo> fields = next.getValue().getCachedFields();
                 for (int i = 0; i < fields.size(); ++i) {
                     CachedFieldInfo fieldInfo = fields.get(i);
                     if ("<init>".equals(fieldInfo.getName())) continue;
-                    fieldStr = fieldStr + "    jfieldID id_" + i + ";\n";
+                    fieldStr.append("    jfieldID id_").append(i).append(";\n");
                 }
-                String methodStr = "";
+                StringBuilder methodStr = new StringBuilder();
                 List<CachedMethodInfo> methods = next.getValue().getCachedMethods();
                 for (int i = 0; i < methods.size(); ++i) {
-                    CachedMethodInfo methodInfo = (CachedMethodInfo)methods.get(i);
-                    methodStr = methodStr + "    jmethodID method_" + i + ";\n";
+                    methodStr.append("    jmethodID method_").append(i).append(";\n");
                 }
-                mainWriter.append("struct cached_c_" + id + " {\n    jclass clazz;\n" + fieldStr + methodStr + "    jboolean initialize;\n};\n\n");
+                mainWriter.append("struct cached_c_").append(String.valueOf(id)).append(" {\n    jclass clazz;\n").append(fieldStr.toString()).append(methodStr.toString()).append("    jboolean initialize;\n};\n\n");
                 String cachedFieldStr = "";
                 for (int i = 0; i < fields.size(); ++i) {
                     CachedFieldInfo fieldInfo = fields.get(i);
@@ -449,42 +438,41 @@ public class NativeObfuscator {
                 }
                 String cachedMethodStr = "";
                 for (int i = 0; i < methods.size(); ++i) {
-                    Object methodInfo = (CachedMethodInfo)methods.get(i);
-                    cachedMethodStr = ((CachedMethodInfo)methodInfo).isStatic() ? cachedMethodStr + "        cache.method_" + i + " = (*env)->GetStaticMethodID(env, clazz, \"" + ((CachedMethodInfo)methodInfo).getName() + "\", \"" + ((CachedMethodInfo)methodInfo).getDesc() + "\");\n" : cachedMethodStr + "        cache.method_" + i + " = (*env)->GetMethodID(env, clazz, \"" + ((CachedMethodInfo)methodInfo).getName() + "\", \"" + ((CachedMethodInfo)methodInfo).getDesc() + "\");\n";
+                    CachedMethodInfo methodInfo = (CachedMethodInfo)methods.get(i);
+                    cachedMethodStr = methodInfo.isStatic() ? cachedMethodStr + "        cache.method_" + i + " = (*env)->GetStaticMethodID(env, clazz, \"" + methodInfo.getName() + "\", \"" + methodInfo.getDesc() + "\");\n" : cachedMethodStr + "        cache.method_" + i + " = (*env)->GetMethodID(env, clazz, \"" + methodInfo.getName() + "\", \"" + methodInfo.getDesc() + "\");\n";
                 }
-                mainWriter.append("static const struct cached_c_" + id + "* c_" + id + "_(JNIEnv *env) {\n    static struct cached_c_" + id + " cache;\n    static atomic_flag lock;\n    if (cache.initialize) return &cache;\n    cache.initialize = JNI_FALSE;\n    jclass clazz = (*env)->FindClass(env, \"" + next.getKey() + "\");\n    while (atomic_flag_test_and_set(&lock)) {}\n    if (!cache.initialize) {\n        cache.clazz = (*env)->NewGlobalRef(env, clazz);\n        if ((*env)->ExceptionCheck(env) && !clazz) {\n            cache.initialize = JNI_FALSE;\n            (*env)->ExceptionDescribe(env);\n            (*env)->ExceptionClear(env);\n            atomic_flag_clear(&lock);\n            return &cache;\n        }\n" + cachedFieldStr + cachedMethodStr + "        cache.initialize = JNI_TRUE;\n    }\n    atomic_flag_clear(&lock);\n    return &cache;\n}\n\n");
+                mainWriter.append("static const struct cached_c_").append(String.valueOf(id)).append("* c_").append(String.valueOf(id)).append("_(JNIEnv *env) {\n    static struct cached_c_").append(String.valueOf(id)).append(" cache;\n    static atomic_flag lock;\n    if (cache.initialize) return &cache;\n    cache.initialize = JNI_FALSE;\n    jclass clazz = (*env)->FindClass(env, \"").append(next.getKey()).append("\");\n    while (atomic_flag_test_and_set(&lock)) {}\n    if (!cache.initialize) {\n        cache.clazz = (*env)->NewGlobalRef(env, clazz);\n        if ((*env)->ExceptionCheck(env) && !clazz) {\n            cache.initialize = JNI_FALSE;\n            (*env)->ExceptionDescribe(env);\n            (*env)->ExceptionClear(env);\n            atomic_flag_clear(&lock);\n            return &cache;\n        }\n").append(cachedFieldStr).append(cachedMethodStr).append("        cache.initialize = JNI_TRUE;\n    }\n    atomic_flag_clear(&lock);\n    return &cache;\n}\n\n");
             }
             mainWriter.append(instructions);
             for (Map.Entry<String, CachedClassInfo> next : this.cachedClasses.getCache().entrySet()) {
                 String methodName;
                 ClassNode classNode = (ClassNode)map.get(next.getKey());
                 if (classNode == null) continue;
-                String registrationMethods = "";
+                StringBuilder registrationMethods = new StringBuilder();
                 int methodCount = 0;
                 for (MethodNode method : classNode.methods) {
                     if ("<init>".equals(method.name) || "<clinit>".equals(method.name) || "$jnicLoader".equals(method.name)) continue;
                     methodName = null;
                     methodName = "$jnicClinit".equals(method.name) ? this.getClassMethodNameMap().get(classNode.name + ".<clinit>()V") : this.getClassMethodNameMap().get(classNode.name + "." + method.name + method.desc);
                     if (methodName == null) continue;
-                    registrationMethods = registrationMethods + "            {\"" + method.name + "\", \"" + method.desc + "\", (void *) &" + methodName + "},\n";
+                    registrationMethods.append("            {\"").append(method.name).append("\", \"").append(method.desc).append("\", (void *) &").append(methodName).append("},\n");
                     ++methodCount;
                 }
                 String className = (String)classNameMap.get(classNode.name);
                 if (!Util.isValidJavaFullClassName(className.replaceAll("/", "."))) continue;
                 methodName = NativeSignature.getJNICompatibleName(className);
-                mainWriter.append("/* Native registration for <" + className + "> */\nJNIEXPORT void JNICALL Java_" + methodName + "__00024jnicLoader(JNIEnv *env, jclass clazz) {\n    JNINativeMethod table[] = {\n" + registrationMethods + "    };\n    (*env)->RegisterNatives(env, clazz, table, " + methodCount + ");\n}\n\n");
+                mainWriter.append("/* Native registration for <").append(className).append("> */\nJNIEXPORT void JNICALL Java_").append(methodName).append("__00024jnicLoader(JNIEnv *env, jclass clazz) {\n    JNINativeMethod table[] = {\n").append(String.valueOf(registrationMethods)).append("    };\n    (*env)->RegisterNatives(env, clazz, table, ").append(String.valueOf(methodCount)).append(");\n}\n\n");
             }
             mainWriter.close();
             if (StringUtils.isEmpty(plainLibName)) {
                 System.out.println("开始编译DLL");
                 ArrayList<String> libNames = new ArrayList<String>();
-                Iterator<String> iterator = config.getTargets().iterator();
-                while (iterator.hasNext()) {
+                for (String s : config.getTargets()) {
                     String libName;
                     String platformTypeName;
                     String osName;
                     String target;
-                    switch (target = iterator.next()) {
+                    switch (target = s) {
                         case "WINDOWS_X86_64": {
                             osName = "windows";
                             platformTypeName = "x86_64";
@@ -558,16 +546,16 @@ public class NativeObfuscator {
                     }
                     System.out.println("目标: " + target);
                     String compilePath = System.getProperty("user.dir") + separator + "zig-" + currentOSName + "-" + currentPlatformTypeName + "-0.9.1" + separator + "zig" + (SetupManager.isWindows() ? ".exe" : "");
-                    if (Files.exists(Paths.get(compilePath, new String[0]), new LinkOption[0])) {
+                    if (Files.exists(Paths.get(compilePath))) {
                         ProcessHelper.ProcessResult compileRunresult = ProcessHelper.run(outputDir, 600000L, Arrays.asList(compilePath, "cc", "-O2", "-fno-sanitize=undefined", "-funroll-loops", "-target", platformTypeName + "-" + osName + "-gnu", "-fPIC", "-shared", "-s", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-I." + separator + "cpp", "-o." + separator + "build" + separator + "lib" + separator + libName, "." + separator + "cpp" + separator + "jnic.c"));
-                        System.out.println(String.format("耗时 %dms", compileRunresult.execTime));
+                        System.out.printf("耗时 %dms%n", compileRunresult.execTime);
                         libNames.add(libName);
                         compileRunresult.check("zig build");
                         continue;
                     }
-                    Path parent = Paths.get(System.getProperty("user.dir"), new String[0]).getParent();
+                    Path parent = Paths.get(System.getProperty("user.dir")).getParent();
                     ProcessHelper.ProcessResult compileRunresult = ProcessHelper.run(outputDir, 600000L, Arrays.asList(parent.toFile().getAbsolutePath() + separator + "zig-" + currentOSName + "-" + currentPlatformTypeName + "-0.9.1" + separator + "zig" + (SetupManager.isWindows() ? ".exe" : ""), "cc", "-O2", "-fno-sanitize=undefined", "-funroll-loops", "-target", platformTypeName + "-" + osName + "-gnu", "-fPIC", "-shared", "-s", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-I." + separator + "cpp", "-o." + separator + "build" + separator + "lib" + separator + libName, "." + separator + "cpp" + separator + "jnic.c"));
-                    System.out.println(String.format("耗时: %dms", compileRunresult.execTime));
+                    System.out.printf("耗时: %dms%n", compileRunresult.execTime);
                     libNames.add(libName);
                     compileRunresult.check("zig build");
                 }
@@ -575,12 +563,12 @@ public class NativeObfuscator {
                 Enter(outputDir);
                 DataTool.compress(outputDir + separator + "build" + separator + "lib", outputDir + separator + "data.dat", Integer.getInteger("level", 1));
                 System.out.println("重新打包");
-                Util.writeEntry(out, this.nativeDir + "/data.dat", Files.readAllBytes(Paths.get(outputDir + separator + "data.dat", new String[0])));
+                Util.writeEntry(out, this.nativeDir + "/data.dat", Files.readAllBytes(Paths.get(outputDir + separator + "data.dat")));
                 try {
                     System.out.println("清理临时文件");
                     FileUtils.clearDirectory(outputDir + separator + "cpp");
                     FileUtils.clearDirectory(outputDir + separator + "build");
-                    Files.deleteIfExists(Paths.get(outputDir + separator + "data.dat", new String[0]));
+                    Files.deleteIfExists(Paths.get(outputDir + separator + "data.dat"));
                 }
                 catch (Exception exception) {
                     // empty catch block
@@ -656,12 +644,12 @@ public class NativeObfuscator {
         return this.noInitClassMap;
     }
 
-    private static String getRandomString(int length) {
+    private static String getRandomString() {
         String str = "zxcvbnmlkjhgfdsaqwertyuiopQWERTYUIOPASDFGHJKLZXCVBNM1234567890";
         Random random = new Random();
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(str.charAt(random.nextInt(26)));
-        for (int i = 0; i < length - 1; ++i) {
+        for (int i = 0; i < 6 - 1; ++i) {
             int number = random.nextInt(62);
             sb.append(str.charAt(number));
         }
@@ -682,7 +670,7 @@ public class NativeObfuscator {
 
     private static void obf(File input, File output) throws Throwable {
         ZipFile zipFile = new ZipFile(input);
-        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(output), Charset.forName("UTF-8"));
+        ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(output.toPath()), Charset.forName("UTF-8"));
         Map<String, ClassNode> classes = new HashMap<>();
         long current = System.currentTimeMillis();
 
@@ -814,8 +802,5 @@ public class NativeObfuscator {
             this.bridgeAccess((MethodNode)methodNode);
             this.varargsAccess((MethodNode)methodNode);
         });
-    }
-    private static void folderobf(File input, File output) throws Throwable {
-
     }
 }
