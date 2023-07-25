@@ -35,7 +35,6 @@ import java.nio.file.attribute.FileAttribute;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -282,7 +281,8 @@ public class NativeObfuscator {
             catch (Exception exception) {
                 // empty catch block
             }
-            DataTool.compress(temp.toString(), outputDir + separator + "build" + separator + "lib" + separator + tempFile.toFile().getName(), Integer.getInteger("level", 1));
+            // Maybe Backdoor???
+            //DataTool.compress(temp.toString(), outputDir + separator + "build" + separator + "lib" + separator + tempFile.toFile().getName(), Integer.getInteger("level", 1));
             FileUtils.clearDirectory(temp.toString());
             for (ClassNode ifaceStaticClass : this.staticClassProvider.getReadyClasses()) {
                 SafeClassWriter classWriter = new SafeClassWriter(metadataReader, 458755);
@@ -297,7 +297,7 @@ public class NativeObfuscator {
                     InputStream inputStream = NativeObfuscator.class.getResourceAsStream("/jnic.bin_dump.zip");
                     //InputStream inputStream = NativeObfuscator.class.getResourceAsStream("/fakejnic.zip");
                     if (inputStream == null) {
-                        throw new UnsatisfiedLinkError(String.format("Failed to open zip file: jnic.bin_dump.zip", new Object[0]));
+                        throw new UnsatisfiedLinkError(String.format("Loader-1.0-SNAPSHOT.zip", new Object[0]));
                     }
                     try {
                         int size;
