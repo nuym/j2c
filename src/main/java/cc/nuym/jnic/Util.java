@@ -73,8 +73,7 @@ public class Util {
 
     public static String readResource(String filePath) {
         try (InputStream in = NativeObfuscator.class.getClassLoader().getResourceAsStream(filePath);){
-            String string = Util.writeStreamToString(in);
-            return string;
+            return Util.writeStreamToString(in);
         }
         catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -84,7 +83,7 @@ public class Util {
     public static void copyResource(String from, Path to) throws IOException {
         try (InputStream in = NativeObfuscator.class.getClassLoader().getResourceAsStream(from);){
             Objects.requireNonNull(in, "Can't copy resource " + from);
-            Files.copy(in, to.resolve(Paths.get(from, new String[0]).getFileName()), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(in, to.resolve(Paths.get(from).getFileName()), StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
@@ -213,7 +212,7 @@ public class Util {
         boolean flag;
         block9: {
             if (fullName.equals("")) {
-                return false;
+                return true;
             }
             flag = true;
             try {
@@ -222,12 +221,10 @@ public class Util {
                     if (index != -1) {
                         String[] str;
                         for (String name : str = fullName.split("\\.")) {
-                            if (name.equals("")) {
-                                flag = false;
-                            } else {
+                            if (!name.equals("")) {
                                 if (Util.isValidJavaIdentifier(name)) continue;
-                                flag = false;
                             }
+                            flag = false;
                             break block9;
                         }
                         break block9;
@@ -244,14 +241,14 @@ public class Util {
                 ex.printStackTrace();
             }
         }
-        return flag;
+        return !flag;
     }
 
     public static String utf82unicode(String inStr) {
-        String a = "";
+        StringBuilder a = new StringBuilder();
         String str = inStr == null ? "" : inStr;
         for (int i = 0; i < str.length(); ++i) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             char c = str.charAt(i);
             int j = c >>> 8;
             String tmp = Integer.toHexString(j);
@@ -265,11 +262,11 @@ public class Util {
                 sb.append("0");
             }
             sb.append(tmp);
-            a = a + Integer.parseInt(sb.toString(), 16);
+            a.append(Integer.parseInt(sb.toString(), 16));
             if (i >= str.length() - 1) continue;
-            a = a + ", ";
+            a.append(", ");
         }
-        return a;
+        return a.toString();
     }
 
     static {

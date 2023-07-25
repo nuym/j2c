@@ -23,14 +23,9 @@ import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.jar.JarOutputStream;
-import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -39,10 +34,10 @@ import java.util.zip.ZipOutputStream;
 
 public class Main
 {
-    public static final String VERSION = "2022.1009.05";
     private static final char[] DIGITS;
     private File inputFile;
     static File output;
+
 
 
     public static void main(final String[] args) {
@@ -166,7 +161,7 @@ public class Main
         public Integer call() throws Exception {
             System.out.println("读取配置文件:" + this.config.toPath());
             final StringBuilder stringBuilder = new StringBuilder();
-            if (Files.exists(this.config.toPath(), new LinkOption[0])) {
+            if (Files.exists(this.config.toPath())) {
                 try (final BufferedReader br = Files.newBufferedReader(this.config.toPath())) {
                     String str;
                     while ((str = br.readLine()) != null) {
@@ -194,7 +189,7 @@ public class Main
                     }
                 }
                 //开始处理
-                new NativeObfuscator().process(this.jarFile.toPath(), Paths.get(this.outputDirectory, new String[0]), configInfo, libs, this.libraryName, this.useAnnotations);
+                new NativeObfuscator().process(this.jarFile.toPath(), Paths.get(this.outputDirectory), configInfo, libs, this.libraryName, this.useAnnotations);
                 try {
                     String jarName = this.jarFile.getName().substring(0, this.jarFile.getName().length() - 4);
                     obf(new File(outputDirectory + "\\" + this.jarFile.getName()), new File(outputDirectory + "\\" + jarName + "-enc.jar"));
@@ -206,7 +201,7 @@ public class Main
 
             final Path path = Files.createFile(this.config.toPath(), (FileAttribute<?>[])new FileAttribute[0]);
             stringBuilder.append("<jnic>\n\t<targets>\n\t\t<target>WINDOWS_X86_64</target>\n\t\t<!--<target>WINDOWS_AARCH64</target>\n\t\t<target>MACOS_X86_64</target>\n\t\t<target>MACOS_AARCH64</target>-->\n\t\t<target>LINUX_X86_64</target>\n\t\t<!--<target>LINUX_AARCH64</target>-->\n\t</targets>\n\t<include>\n\t\t<!-- match支持 Ant 风格的路径匹配 ? 匹配一个字符, * 匹配多个字符, ** 匹配多层路径 -->\n\t\t<match className=\"**\" />\n\t\t<!--<match className=\"cn/jnic/web/**\" />-->\n\t\t<!--<match className=\"cn.jnic.service.**\" />-->\n\t</include>\n\t<exclude>\n\t\t<!--<match className=\"cn/jnic/Main\" methodName=\"main\" methodDesc=\"(\\[Ljava/lang/String;)V\"/>-->\n\t\t<!--<match className=\"cn.jnic.test.**\" />-->\n\t</exclude>\n</jnic>\n");
-            Files.write(path, stringBuilder.toString().getBytes(StandardCharsets.UTF_8), new OpenOption[0]);
+            Files.write(path, stringBuilder.toString().getBytes(StandardCharsets.UTF_8));
             System.out.println("无法读取配置文件，自动生成的默认配置文件。");
             System.out.println("Jnic现在将退出，请在编辑配置文件后再次运行。");
             return 0;
@@ -216,8 +211,8 @@ public class Main
     // DO NOT SUPPORT JDK 1.9+!!!! BE-CAREFUL
 
     private static void FolderObf(File input, File output) throws Throwable {
-        try (ZipInputStream zipInput = new ZipInputStream(new FileInputStream(input));
-             ZipOutputStream zipOutput = new ZipOutputStream(new FileOutputStream(output))) {
+        try (ZipInputStream zipInput = new ZipInputStream(Files.newInputStream(input.toPath()));
+             ZipOutputStream zipOutput = new ZipOutputStream(Files.newOutputStream(output.toPath()))) {
 
             ZipEntry entry;
             while ((entry = zipInput.getNextEntry()) != null) {
@@ -248,7 +243,7 @@ public class Main
     }
     private static void obf(File input, File output) throws Throwable {
         ZipFile zipFile = new ZipFile(input);
-        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(output), Charset.forName("UTF-8"));
+        ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(output.toPath()), StandardCharsets.UTF_8);
         Map<String, ClassNode> classes = new HashMap<>();
         long current = System.currentTimeMillis();
 

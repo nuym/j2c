@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class InvokeDynamicHandler
         extends GenericInstructionHandler<InvokeDynamicInsnNode> {
-    private final Map<MethodNode, Integer> cache = new HashMap<MethodNode, Integer>();
+    private final Map<MethodNode, Integer> cache = new HashMap<>();
 
     @Override
     protected void process(MethodContext context, InvokeDynamicInsnNode node) {
@@ -41,127 +41,127 @@ public class InvokeDynamicHandler
         CachedClassInfo clazz = context.getCachedClasses().getClass(context.clazz.name);
         CachedClassInfo javaClass = context.getCachedClasses().getClass("java/lang/Class");
         CachedClassInfo lookup = context.getCachedClasses().getClass("java/lang/invoke/MethodHandles$Lookup");
-        context.output.append("\nstatic jobject indy" + index + ";\n");
+        context.output.append("\nstatic jobject indy").append(index).append(";\n");
         if (node.bsmArgs.length > 3) {
-            context.output.append("if(indy" + index + " == NULL) {\n");
+            context.output.append("if(indy").append(index).append(" == NULL) {\n");
             int size = 3 + node.bsmArgs.length;
-            context.output.append(" jobject args = (*env)->NewObjectArray(env, " + size + ", c_" + context.getCachedClasses().getClass("java/lang/Object").getId() + "_(env)->clazz, NULL);\n");
-            context.output.append("(*env)->SetObjectArrayElement(env, args, 0, (*env)->CallStaticObjectMethod(env, c_" + methodHandles.getId() + "_(env)->clazz, c_" + methodHandles.getId() + "_(env)->method_" + methodHandles.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodHandles", "lookup", "()Ljava/lang/invoke/MethodHandles$Lookup;", true)) + "));\n");
-            context.output.append("(*env)->SetObjectArrayElement(env, args, 1, (*env)->NewString(env, (unsigned short[]) {" + Util.utf82unicode(node.name) + "}, " + node.name.length() + "));\n");
-            context.output.append("(*env)->SetObjectArrayElement(env, args, 2, (*env)->CallStaticObjectMethod(env, c_" + methodType.getId() + "_(env)->clazz, c_" + methodType.getId() + "_(env)->method_" + methodType.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodType", "fromMethodDescriptorString", "(Ljava/lang/String;Ljava/lang/ClassLoader;)Ljava/lang/invoke/MethodType;", true)) + ", (*env)->NewString(env, (unsigned short[]) {" + Util.utf82unicode(node.desc) + "}, " + node.desc.length() + "), (*env)->CallObjectMethod(env,c_" + clazz.getId() + "_(env)->clazz, c_" + javaClass.getId() + "_(env)->method_" + javaClass.getCachedMethodId(new CachedMethodInfo("java/lang/Class", "getClassLoader", "()Ljava/lang/ClassLoader;", false)) + ")));\n");
+            context.output.append(" jobject args = (*env)->NewObjectArray(env, ").append(size).append(", c_").append(context.getCachedClasses().getClass("java/lang/Object").getId()).append("_(env)->clazz, NULL);\n");
+            context.output.append("(*env)->SetObjectArrayElement(env, args, 0, (*env)->CallStaticObjectMethod(env, c_").append(methodHandles.getId()).append("_(env)->clazz, c_").append(methodHandles.getId()).append("_(env)->method_").append(methodHandles.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodHandles", "lookup", "()Ljava/lang/invoke/MethodHandles$Lookup;", true))).append("));\n");
+            context.output.append("(*env)->SetObjectArrayElement(env, args, 1, (*env)->NewString(env, (unsigned short[]) {").append(Util.utf82unicode(node.name)).append("}, ").append(node.name.length()).append("));\n");
+            context.output.append("(*env)->SetObjectArrayElement(env, args, 2, (*env)->CallStaticObjectMethod(env, c_").append(methodType.getId()).append("_(env)->clazz, c_").append(methodType.getId()).append("_(env)->method_").append(methodType.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodType", "fromMethodDescriptorString", "(Ljava/lang/String;Ljava/lang/ClassLoader;)Ljava/lang/invoke/MethodType;", true))).append(", (*env)->NewString(env, (unsigned short[]) {").append(Util.utf82unicode(node.desc)).append("}, ").append(node.desc.length()).append("), (*env)->CallObjectMethod(env,c_").append(clazz.getId()).append("_(env)->clazz, c_").append(javaClass.getId()).append("_(env)->method_").append(javaClass.getCachedMethodId(new CachedMethodInfo("java/lang/Class", "getClassLoader", "()Ljava/lang/ClassLoader;", false))).append(")));\n");
             for (i = 0; i < node.bsmArgs.length; ++i) {
                 CachedClassInfo integer;
                 bsmArgument = node.bsmArgs[i];
                 if (bsmArgument instanceof String) {
-                    context.output.append("(*env)->SetObjectArrayElement(env, args, " + (3 + i) + ", (*env)->NewString(env, (unsigned short[]) {" + Util.utf82unicode(bsmArgument.toString()) + "}, " + bsmArgument.toString().length() + "));\n");
+                    context.output.append("(*env)->SetObjectArrayElement(env, args, ").append(3 + i).append(", (*env)->NewString(env, (unsigned short[]) {").append(Util.utf82unicode(bsmArgument.toString())).append("}, ").append(bsmArgument.toString().length()).append("));\n");
                     continue;
                 }
                 if (bsmArgument instanceof Type) {
                     if (((Type)bsmArgument).getSort() == 11) {
-                        context.output.append("(*env)->SetObjectArrayElement(env, args, " + (3 + i) + ", (*env)->CallStaticObjectMethod(env, c_" + methodType.getId() + "_(env)->clazz, c_" + methodType.getId() + "_(env)->method_" + methodType.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodType", "fromMethodDescriptorString", "(Ljava/lang/String;Ljava/lang/ClassLoader;)Ljava/lang/invoke/MethodType;", true)) + ", (*env)->NewString(env, (unsigned short[]) {" + Util.utf82unicode(bsmArgument.toString()) + "}, " + bsmArgument.toString().length() + "), (*env)->CallObjectMethod(env,c_" + clazz.getId() + "_(env)->clazz, c_" + javaClass.getId() + "_(env)->method_" + javaClass.getCachedMethodId(new CachedMethodInfo("java/lang/Class", "getClassLoader", "()Ljava/lang/ClassLoader;", false)) + ")));\n");
+                        context.output.append("(*env)->SetObjectArrayElement(env, args, ").append(3 + i).append(", (*env)->CallStaticObjectMethod(env, c_").append(methodType.getId()).append("_(env)->clazz, c_").append(methodType.getId()).append("_(env)->method_").append(methodType.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodType", "fromMethodDescriptorString", "(Ljava/lang/String;Ljava/lang/ClassLoader;)Ljava/lang/invoke/MethodType;", true))).append(", (*env)->NewString(env, (unsigned short[]) {").append(Util.utf82unicode(bsmArgument.toString())).append("}, ").append(bsmArgument.toString().length()).append("), (*env)->CallObjectMethod(env,c_").append(clazz.getId()).append("_(env)->clazz, c_").append(javaClass.getId()).append("_(env)->method_").append(javaClass.getCachedMethodId(new CachedMethodInfo("java/lang/Class", "getClassLoader", "()Ljava/lang/ClassLoader;", false))).append(")));\n");
                         continue;
                     }
-                    context.output.append("(*env)->SetObjectArrayElement(env, args, " + (3 + i) + ", c_" + context.getCachedClasses().getId(bsmArgument.toString()) + "_(env)->clazz);\n");
+                    context.output.append("(*env)->SetObjectArrayElement(env, args, ").append(3 + i).append(", c_").append(context.getCachedClasses().getId(bsmArgument.toString())).append("_(env)->clazz);\n");
                     continue;
                 }
                 if (bsmArgument instanceof Integer) {
                     integer = context.getCachedClasses().getClass("java/lang/Integer");
-                    context.output.append("(*env)->SetObjectArrayElement(env, args, " + (3 + i) + ", (*env)->CallStaticObjectMethod(env, c_" + integer.getId() + "_(env)->clazz, c_" + integer.getId() + "_(env)->method_" + integer.getCachedMethodId(new CachedMethodInfo("java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;", true)) + ", " + bsmArgument + "));\n");
+                    context.output.append("(*env)->SetObjectArrayElement(env, args, ").append(3 + i).append(", (*env)->CallStaticObjectMethod(env, c_").append(integer.getId()).append("_(env)->clazz, c_").append(integer.getId()).append("_(env)->method_").append(integer.getCachedMethodId(new CachedMethodInfo("java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;", true))).append(", ").append(bsmArgument).append("));\n");
                     continue;
                 }
                 if (bsmArgument instanceof Long) {
                     integer = context.getCachedClasses().getClass("java/lang/Long");
-                    context.output.append("(*env)->SetObjectArrayElement(env, args, " + (3 + i) + ", (*env)->CallStaticObjectMethod(env, c_" + integer.getId() + "_(env)->clazz, c_" + integer.getId() + "_(env)->method_" + integer.getCachedMethodId(new CachedMethodInfo("java/lang/Long", "valueOf", "(J)Ljava/lang/Long;", true)) + ", " + bsmArgument + "));\n");
+                    context.output.append("(*env)->SetObjectArrayElement(env, args, ").append(3 + i).append(", (*env)->CallStaticObjectMethod(env, c_").append(integer.getId()).append("_(env)->clazz, c_").append(integer.getId()).append("_(env)->method_").append(integer.getCachedMethodId(new CachedMethodInfo("java/lang/Long", "valueOf", "(J)Ljava/lang/Long;", true))).append(", ").append(bsmArgument).append("));\n");
                     continue;
                 }
                 if (bsmArgument instanceof Float) {
                     integer = context.getCachedClasses().getClass("java/lang/Float");
-                    context.output.append("(*env)->SetObjectArrayElement(env, args, " + (3 + i) + ", (*env)->CallStaticObjectMethod(env, c_" + integer.getId() + "_(env)->clazz, c_" + integer.getId() + "_(env)->method_" + integer.getCachedMethodId(new CachedMethodInfo("java/lang/Float", "valueOf", "(F)Ljava/lang/Float;", true)) + ", " + bsmArgument + "));\n");
+                    context.output.append("(*env)->SetObjectArrayElement(env, args, ").append(3 + i).append(", (*env)->CallStaticObjectMethod(env, c_").append(integer.getId()).append("_(env)->clazz, c_").append(integer.getId()).append("_(env)->method_").append(integer.getCachedMethodId(new CachedMethodInfo("java/lang/Float", "valueOf", "(F)Ljava/lang/Float;", true))).append(", ").append(bsmArgument).append("));\n");
                     continue;
                 }
                 if (bsmArgument instanceof Double) {
                     integer = context.getCachedClasses().getClass("java/lang/Double");
-                    context.output.append("(*env)->SetObjectArrayElement(env, args, " + (3 + i) + ", (*env)->CallStaticObjectMethod(env, c_" + integer.getId() + "_(env)->clazz, c_" + integer.getId() + "_(env)->method_" + integer.getCachedMethodId(new CachedMethodInfo("java/lang/Double", "valueOf", "(D)Ljava/lang/Double;", true)) + ", " + bsmArgument + "));\n");
+                    context.output.append("(*env)->SetObjectArrayElement(env, args, ").append(3 + i).append(", (*env)->CallStaticObjectMethod(env, c_").append(integer.getId()).append("_(env)->clazz, c_").append(integer.getId()).append("_(env)->method_").append(integer.getCachedMethodId(new CachedMethodInfo("java/lang/Double", "valueOf", "(D)Ljava/lang/Double;", true))).append(", ").append(bsmArgument).append("));\n");
                     continue;
                 }
                 if (bsmArgument instanceof Handle) {
-                    context.output.append("(*env)->SetObjectArrayElement(env, args, " + (3 + i) + ", (*env)->CallObjectMethod(env, (*env)->CallStaticObjectMethod(env, c_" + methodHandles.getId() + "_(env)->clazz, c_" + methodHandles.getId() + "_(env)->method_" + methodHandles.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodHandles", "lookup", "()Ljava/lang/invoke/MethodHandles$Lookup;", true)) + "), c_" + lookup.getId() + "_(env)->method_" + lookup.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodHandles$Lookup", "findStatic", "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/MethodHandle;", false)) + ", c_" + context.getCachedClasses().getClass(((Handle)bsmArgument).getOwner()).getId() + "_(env)->clazz, (*env)->NewString(env, (unsigned short[]) {" + Util.utf82unicode(((Handle)bsmArgument).getName()) + "}, " + ((Handle)bsmArgument).getName().length() + "), (*env)->CallStaticObjectMethod(env, c_" + methodType.getId() + "_(env)->clazz, c_" + methodType.getId() + "_(env)->method_" + methodType.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodType", "fromMethodDescriptorString", "(Ljava/lang/String;Ljava/lang/ClassLoader;)Ljava/lang/invoke/MethodType;", true)) + ", (*env)->NewString(env, (unsigned short[]) {" + Util.utf82unicode(((Handle)bsmArgument).getDesc()) + "}, " + ((Handle)bsmArgument).getDesc().length() + "), (*env)->CallObjectMethod(env,c_" + clazz.getId() + "_(env)->clazz, c_" + javaClass.getId() + "_(env)->method_" + javaClass.getCachedMethodId(new CachedMethodInfo("java/lang/Class", "getClassLoader", "()Ljava/lang/ClassLoader;", false)) + "))));\n");
+                    context.output.append("(*env)->SetObjectArrayElement(env, args, ").append(3 + i).append(", (*env)->CallObjectMethod(env, (*env)->CallStaticObjectMethod(env, c_").append(methodHandles.getId()).append("_(env)->clazz, c_").append(methodHandles.getId()).append("_(env)->method_").append(methodHandles.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodHandles", "lookup", "()Ljava/lang/invoke/MethodHandles$Lookup;", true))).append("), c_").append(lookup.getId()).append("_(env)->method_").append(lookup.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodHandles$Lookup", "findStatic", "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/MethodHandle;", false))).append(", c_").append(context.getCachedClasses().getClass(((Handle) bsmArgument).getOwner()).getId()).append("_(env)->clazz, (*env)->NewString(env, (unsigned short[]) {").append(Util.utf82unicode(((Handle) bsmArgument).getName())).append("}, ").append(((Handle) bsmArgument).getName().length()).append("), (*env)->CallStaticObjectMethod(env, c_").append(methodType.getId()).append("_(env)->clazz, c_").append(methodType.getId()).append("_(env)->method_").append(methodType.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodType", "fromMethodDescriptorString", "(Ljava/lang/String;Ljava/lang/ClassLoader;)Ljava/lang/invoke/MethodType;", true))).append(", (*env)->NewString(env, (unsigned short[]) {").append(Util.utf82unicode(((Handle) bsmArgument).getDesc())).append("}, ").append(((Handle) bsmArgument).getDesc().length()).append("), (*env)->CallObjectMethod(env,c_").append(clazz.getId()).append("_(env)->clazz, c_").append(javaClass.getId()).append("_(env)->method_").append(javaClass.getCachedMethodId(new CachedMethodInfo("java/lang/Class", "getClassLoader", "()Ljava/lang/ClassLoader;", false))).append("))));\n");
                     continue;
                 }
                 if (bsmArgument instanceof Short) {
                     integer = context.getCachedClasses().getClass("java/lang/Short");
-                    context.output.append("(*env)->SetObjectArrayElement(env, args, " + (3 + i) + ", (*env)->CallStaticObjectMethod(env, c_" + integer.getId() + "_(env)->clazz, c_" + integer.getId() + "_(env)->method_" + integer.getCachedMethodId(new CachedMethodInfo("java/lang/Short", "valueOf", "(S)Ljava/lang/Short;", true)) + ", " + bsmArgument + "));\n");
+                    context.output.append("(*env)->SetObjectArrayElement(env, args, ").append(3 + i).append(", (*env)->CallStaticObjectMethod(env, c_").append(integer.getId()).append("_(env)->clazz, c_").append(integer.getId()).append("_(env)->method_").append(integer.getCachedMethodId(new CachedMethodInfo("java/lang/Short", "valueOf", "(S)Ljava/lang/Short;", true))).append(", ").append(bsmArgument).append("));\n");
                     continue;
                 }
                 throw new RuntimeException("Wrong argument type: " + bsmArgument.getClass());
             }
             context.output.append("jobject callSite = (*env)->CallObjectMethod(env, ");
             context.output.append("(*env)->CallObjectMethod(env, ");
-            context.output.append("(*env)->CallStaticObjectMethod(env, c_" + methodHandles.getId() + "_(env)->clazz, c_" + methodHandles.getId() + "_(env)->method_" + methodHandles.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodHandles", "lookup", "()Ljava/lang/invoke/MethodHandles$Lookup;", true)) + "), ");
-            context.output.append("c_" + lookup.getId() + "_(env)->method_" + lookup.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodHandles$Lookup", "findStatic", "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/MethodHandle;", false)) + ", ");
-            context.output.append("c_" + bsmClass.getId() + "_(env)->clazz, ");
-            context.output.append("(*env)->NewString(env, (unsigned short[]) {" + Util.utf82unicode(node.bsm.getName()) + "}, " + node.bsm.getName().length() + "), ");
+            context.output.append("(*env)->CallStaticObjectMethod(env, c_").append(methodHandles.getId()).append("_(env)->clazz, c_").append(methodHandles.getId()).append("_(env)->method_").append(methodHandles.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodHandles", "lookup", "()Ljava/lang/invoke/MethodHandles$Lookup;", true))).append("), ");
+            context.output.append("c_").append(lookup.getId()).append("_(env)->method_").append(lookup.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodHandles$Lookup", "findStatic", "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/MethodHandle;", false))).append(", ");
+            context.output.append("c_").append(bsmClass.getId()).append("_(env)->clazz, ");
+            context.output.append("(*env)->NewString(env, (unsigned short[]) {").append(Util.utf82unicode(node.bsm.getName())).append("}, ").append(node.bsm.getName().length()).append("), ");
             context.output.append("(*env)->CallStaticObjectMethod(env, ");
-            context.output.append("c_" + methodType.getId() + "_(env)->clazz, ");
-            context.output.append("c_" + methodType.getId() + "_(env)->method_" + methodType.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodType", "fromMethodDescriptorString", "(Ljava/lang/String;Ljava/lang/ClassLoader;)Ljava/lang/invoke/MethodType;", true)) + ", ");
-            context.output.append("(*env)->NewString(env, (unsigned short[]) {" + Util.utf82unicode(node.bsm.getDesc()) + "}, " + node.bsm.getDesc().length() + "), ");
-            context.output.append("(*env)->CallObjectMethod(env, c_" + clazz.getId() + "_(env)->clazz, c_" + javaClass.getId() + "_(env)->method_" + javaClass.getCachedMethodId(new CachedMethodInfo("java/lang/Class", "getClassLoader", "()Ljava/lang/ClassLoader;", false)) + "))");
+            context.output.append("c_").append(methodType.getId()).append("_(env)->clazz, ");
+            context.output.append("c_").append(methodType.getId()).append("_(env)->method_").append(methodType.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodType", "fromMethodDescriptorString", "(Ljava/lang/String;Ljava/lang/ClassLoader;)Ljava/lang/invoke/MethodType;", true))).append(", ");
+            context.output.append("(*env)->NewString(env, (unsigned short[]) {").append(Util.utf82unicode(node.bsm.getDesc())).append("}, ").append(node.bsm.getDesc().length()).append("), ");
+            context.output.append("(*env)->CallObjectMethod(env, c_").append(clazz.getId()).append("_(env)->clazz, c_").append(javaClass.getId()).append("_(env)->method_").append(javaClass.getCachedMethodId(new CachedMethodInfo("java/lang/Class", "getClassLoader", "()Ljava/lang/ClassLoader;", false))).append("))");
             context.output.append("), ");
-            context.output.append("c_" + methodHandle.getId() + "_(env)->method_" + methodHandle.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodHandle", "invokeWithArguments", "([Ljava/lang/Object;)Ljava/lang/Object;", false)) + ", ");
+            context.output.append("c_").append(methodHandle.getId()).append("_(env)->method_").append(methodHandle.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodHandle", "invokeWithArguments", "([Ljava/lang/Object;)Ljava/lang/Object;", false))).append(", ");
             context.output.append("args);");
-            context.output.append((String)this.props.get("trycatchhandler") + "\n");
-            context.output.append("indy" + index + " = (*env)->NewGlobalRef(env, callSite);\n");
+            context.output.append(this.props.get("trycatchhandler")).append("\n");
+            context.output.append("indy").append(index).append(" = (*env)->NewGlobalRef(env, callSite);\n");
             context.output.append("(*env)->DeleteLocalRef(env, callSite);\n");
             context.output.append("}\n");
         } else {
-            context.output.append("if(indy" + index + " == NULL) {\n");
+            context.output.append("if(indy").append(index).append(" == NULL) {\n");
             context.output.append("jobject callSite = (*env)->CallStaticObjectMethod(env, ");
-            context.output.append("c_" + bsmClass.getId() + "_(env)->clazz, ");
-            context.output.append("c_" + bsmClass.getId() + "_(env)->method_" + bsmClass.getCachedMethodId(new CachedMethodInfo(node.bsm.getOwner(), node.bsm.getName(), node.bsm.getDesc(), true)) + ", ");
-            context.output.append("(*env)->CallStaticObjectMethod(env, c_" + methodHandles.getId() + "_(env)->clazz, c_" + methodHandles.getId() + "_(env)->method_" + methodHandles.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodHandles", "lookup", "()Ljava/lang/invoke/MethodHandles$Lookup;", true)) + "), ");
-            context.output.append("(*env)->NewString(env, (unsigned short[]) {" + Util.utf82unicode(node.name) + "}, " + node.name.length() + "), ");
-            context.output.append("(*env)->CallStaticObjectMethod(env, c_" + methodType.getId() + "_(env)->clazz, c_" + methodType.getId() + "_(env)->method_" + methodType.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodType", "fromMethodDescriptorString", "(Ljava/lang/String;Ljava/lang/ClassLoader;)Ljava/lang/invoke/MethodType;", true)) + ", (*env)->NewString(env, (unsigned short[]) {" + Util.utf82unicode(node.desc) + "}, " + node.desc.length() + "), (*env)->CallObjectMethod(env, c_" + clazz.getId() + "_(env)->clazz, c_" + javaClass.getId() + "_(env)->method_" + javaClass.getCachedMethodId(new CachedMethodInfo("java/lang/Class", "getClassLoader", "()Ljava/lang/ClassLoader;", false)) + ")), ");
-            String args = "";
+            context.output.append("c_").append(bsmClass.getId()).append("_(env)->clazz, ");
+            context.output.append("c_").append(bsmClass.getId()).append("_(env)->method_").append(bsmClass.getCachedMethodId(new CachedMethodInfo(node.bsm.getOwner(), node.bsm.getName(), node.bsm.getDesc(), true))).append(", ");
+            context.output.append("(*env)->CallStaticObjectMethod(env, c_").append(methodHandles.getId()).append("_(env)->clazz, c_").append(methodHandles.getId()).append("_(env)->method_").append(methodHandles.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodHandles", "lookup", "()Ljava/lang/invoke/MethodHandles$Lookup;", true))).append("), ");
+            context.output.append("(*env)->NewString(env, (unsigned short[]) {").append(Util.utf82unicode(node.name)).append("}, ").append(node.name.length()).append("), ");
+            context.output.append("(*env)->CallStaticObjectMethod(env, c_").append(methodType.getId()).append("_(env)->clazz, c_").append(methodType.getId()).append("_(env)->method_").append(methodType.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodType", "fromMethodDescriptorString", "(Ljava/lang/String;Ljava/lang/ClassLoader;)Ljava/lang/invoke/MethodType;", true))).append(", (*env)->NewString(env, (unsigned short[]) {").append(Util.utf82unicode(node.desc)).append("}, ").append(node.desc.length()).append("), (*env)->CallObjectMethod(env, c_").append(clazz.getId()).append("_(env)->clazz, c_").append(javaClass.getId()).append("_(env)->method_").append(javaClass.getCachedMethodId(new CachedMethodInfo("java/lang/Class", "getClassLoader", "()Ljava/lang/ClassLoader;", false))).append(")), ");
+            StringBuilder args = new StringBuilder();
             for (i = 0; i < node.bsmArgs.length; ++i) {
                 bsmArgument = node.bsmArgs[i];
                 if (bsmArgument instanceof String) {
-                    args = args + "(*env)->NewString(env, (unsigned short[]) {" + Util.utf82unicode((String)bsmArgument) + "}, " + ((String)bsmArgument).length() + ")" + (i < node.bsmArgs.length - 1 ? ", " : "");
+                    args.append("(*env)->NewString(env, (unsigned short[]) {").append(Util.utf82unicode((String) bsmArgument)).append("}, ").append(((String) bsmArgument).length()).append(")").append(i < node.bsmArgs.length - 1 ? ", " : "");
                     continue;
                 }
                 if (bsmArgument instanceof Type) {
                     if (((Type)bsmArgument).getSort() == 11) {
-                        args = args + "(*env)->CallStaticObjectMethod(env, c_" + methodType.getId() + "_(env)->clazz, c_" + methodType.getId() + "_(env)->method_" + methodType.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodType", "fromMethodDescriptorString", "(Ljava/lang/String;Ljava/lang/ClassLoader;)Ljava/lang/invoke/MethodType;", true)) + ", (*env)->NewString(env, (unsigned short[]) {" + Util.utf82unicode(((Type)bsmArgument).getDescriptor()) + "}, " + ((Type)bsmArgument).getDescriptor().length() + "), (*env)->CallObjectMethod(env, c_" + clazz.getId() + "_(env)->clazz, c_" + javaClass.getId() + "_(env)->method_" + javaClass.getCachedMethodId(new CachedMethodInfo("java/lang/Class", "getClassLoader", "()Ljava/lang/ClassLoader;", false)) + "))" + (i < node.bsmArgs.length - 1 ? ", " : "");
+                        args.append("(*env)->CallStaticObjectMethod(env, c_").append(methodType.getId()).append("_(env)->clazz, c_").append(methodType.getId()).append("_(env)->method_").append(methodType.getCachedMethodId(new CachedMethodInfo("java/lang/invoke/MethodType", "fromMethodDescriptorString", "(Ljava/lang/String;Ljava/lang/ClassLoader;)Ljava/lang/invoke/MethodType;", true))).append(", (*env)->NewString(env, (unsigned short[]) {").append(Util.utf82unicode(((Type) bsmArgument).getDescriptor())).append("}, ").append(((Type) bsmArgument).getDescriptor().length()).append("), (*env)->CallObjectMethod(env, c_").append(clazz.getId()).append("_(env)->clazz, c_").append(javaClass.getId()).append("_(env)->method_").append(javaClass.getCachedMethodId(new CachedMethodInfo("java/lang/Class", "getClassLoader", "()Ljava/lang/ClassLoader;", false))).append("))").append(i < node.bsmArgs.length - 1 ? ", " : "");
                         continue;
                     }
-                    args = args + "c_" + context.getCachedClasses().getId(bsmArgument.toString()) + "_(env)->clazz" + (i < node.bsmArgs.length - 1 ? ", \n" : "");
+                    args.append("c_").append(context.getCachedClasses().getId(bsmArgument.toString())).append("_(env)->clazz").append(i < node.bsmArgs.length - 1 ? ", \n" : "");
                     continue;
                 }
                 if (bsmArgument instanceof Integer) {
-                    args = args + bsmArgument + (i < node.bsmArgs.length - 1 ? ", " : "");
+                    args.append(bsmArgument).append(i < node.bsmArgs.length - 1 ? ", " : "");
                     continue;
                 }
                 if (bsmArgument instanceof Long) {
-                    args = args + bsmArgument + (i < node.bsmArgs.length - 1 ? ", " : "");
+                    args.append(bsmArgument).append(i < node.bsmArgs.length - 1 ? ", " : "");
                     continue;
                 }
                 if (bsmArgument instanceof Float) {
-                    args = args + bsmArgument + (i < node.bsmArgs.length - 1 ? ", " : "");
+                    args.append(bsmArgument).append(i < node.bsmArgs.length - 1 ? ", " : "");
                     continue;
                 }
                 if (bsmArgument instanceof Double) {
-                    args = args + bsmArgument + (i < node.bsmArgs.length - 1 ? ", " : "");
+                    args.append(bsmArgument).append(i < node.bsmArgs.length - 1 ? ", " : "");
                     continue;
                 }
                 if (bsmArgument instanceof Handle) {
-                    args = args + this.generateMethodHandleLdcInsn(context, (Handle)bsmArgument) + (i < node.bsmArgs.length - 1 ? ", " : "");
+                    args.append(this.generateMethodHandleLdcInsn(context, (Handle) bsmArgument)).append(i < node.bsmArgs.length - 1 ? ", " : "");
                     continue;
                 }
                 throw new RuntimeException("Wrong argument type: " + bsmArgument.getClass());
             }
             context.output.append(args);
             context.output.append(");\n");
-            context.output.append((String)this.props.get("trycatchhandler") + "\n");
-            context.output.append("indy" + index + " = (*env)->NewGlobalRef(env, callSite);\n");
+            context.output.append(this.props.get("trycatchhandler")).append("\n");
+            context.output.append("indy").append(index).append(" = (*env)->NewGlobalRef(env, callSite);\n");
             context.output.append("(*env)->DeleteLocalRef(env, callSite);\n");
             context.output.append("}\n");
         }
@@ -172,12 +172,12 @@ public class InvokeDynamicHandler
             CachedMethodInfo methodInfo = cachedMethods.get(i2);
             if (!methodInfo.getName().equals("getTarget")) continue;
             hasMethod = true;
-            context.output.append("temp0.l = (*env)->CallObjectMethod(env, indy" + index + ", c_" + classInfo.getId() + "_(env)->method_" + i2 + ");\n");
+            context.output.append("temp0.l = (*env)->CallObjectMethod(env, indy").append(index).append(", c_").append(classInfo.getId()).append("_(env)->method_").append(i2).append(");\n");
         }
         if (!hasMethod) {
             CachedMethodInfo cachedMethodInfo = new CachedMethodInfo("java/lang/invoke/CallSite", "getTarget", "()Ljava/lang/invoke/MethodHandle;", false);
             classInfo.addCachedMethod(cachedMethodInfo);
-            context.output.append("temp0.l = (*env)->CallObjectMethod(env, indy" + index + ", c_" + classInfo.getId() + "_(env)->method_" + (classInfo.getCachedMethods().size() - 1) + ");\n");
+            context.output.append("temp0.l = (*env)->CallObjectMethod(env, indy").append(index).append(", c_").append(classInfo.getId()).append("_(env)->method_").append(classInfo.getCachedMethods().size() - 1).append(");\n");
         }
         CachedClassInfo methodHandleClassInfo = context.getCachedClasses().getClass("java/lang/invoke/MethodHandle");
         int methodId = -1;
@@ -195,7 +195,7 @@ public class InvokeDynamicHandler
         }
         Type[] argTypes = Type.getArgumentTypes(node.desc);
         StringBuilder argsBuilder = new StringBuilder();
-        ArrayList<Integer> argOffsets = new ArrayList<Integer>();
+        ArrayList<Integer> argOffsets = new ArrayList<>();
         int stackOffset = context.stackPointer;
         for (Type argType : argTypes) {
             stackOffset -= argType.getSize();
@@ -209,17 +209,15 @@ public class InvokeDynamicHandler
             argsBuilder.append(", ").append(context.getSnippets().getSnippet("INVOKE_ARG_" + argTypes[i3].getSort(), Util.createMap("index", argOffsets.get(i3))));
         }
         if (argOffsets.size() == 0) {
-            context.output.append("cstack" + stackOffset + ".l = (*env)->CallObjectMethod(env, temp0.l, c_" + methodHandleClassInfo.getId() + "_(env)->method_" + methodId + ", NULL);\n");
+            context.output.append("cstack").append(stackOffset).append(".l = (*env)->CallObjectMethod(env, temp0.l, c_").append(methodHandleClassInfo.getId()).append("_(env)->method_").append(methodId).append(", NULL);\n");
         } else {
             String methodDesc = InvokeDynamicHandler.simplifyDesc(node.desc);
             Type[] methodArguments = Type.getArgumentTypes(methodDesc);
             Type[] newMethodArguments = new Type[methodArguments.length + 1];
             newMethodArguments[0] = Type.getObjectType("java/lang/invoke/MethodHandle");
-            for (int i4 = 0; i4 < methodArguments.length; ++i4) {
-                newMethodArguments[i4 + 1] = methodArguments[i4];
-            }
+            System.arraycopy(methodArguments, 0, newMethodArguments, 1, methodArguments.length);
             methodDesc = Type.getMethodDescriptor(Type.getReturnType(methodDesc), newMethodArguments);
-            String mhDesc = InvokeDynamicHandler.simplifyDesc(Type.getMethodType(Type.getReturnType(node.desc), (Type[])Util.reverse(Util.reverse(Arrays.stream(Type.getArgumentTypes(node.desc)))).toArray(Type[]::new)).getDescriptor());
+            String mhDesc = InvokeDynamicHandler.simplifyDesc(Type.getMethodType(Type.getReturnType(node.desc), Util.reverse(Util.reverse(Arrays.stream(Type.getArgumentTypes(node.desc)))).toArray(Type[]::new)).getDescriptor());
             context.obfuscator.getBootstrapMethodsPool().getMethod("invoke", methodDesc, method -> {
                 method.instructions.add(new VarInsnNode(25, 0));
                 int idx = 1;
@@ -231,9 +229,9 @@ public class InvokeDynamicHandler
                 method.instructions.add(new InsnNode(Type.getReturnType(mhDesc).getOpcode(172)));
             });
             CachedClassInfo classLoader = context.getCachedClasses().getClass(context.obfuscator.getNativeDir() + "/JNICLoader");
-            context.output.append("cstack" + stackOffset + ".l = (*env)->CallStaticObjectMethod(env, c_" + classLoader.getId() + "_(env)->clazz, c_" + classLoader.getId() + "_(env)->method_" + classLoader.getCachedMethodId(new CachedMethodInfo(context.obfuscator.getNativeDir() + "/JNICLoader", "invoke", methodDesc, true)) + ", temp0.l" + argsBuilder + ");\n");
+            context.output.append("cstack").append(stackOffset).append(".l = (*env)->CallStaticObjectMethod(env, c_").append(classLoader.getId()).append("_(env)->clazz, c_").append(classLoader.getId()).append("_(env)->method_").append(classLoader.getCachedMethodId(new CachedMethodInfo(context.obfuscator.getNativeDir() + "/JNICLoader", "invoke", methodDesc, true))).append(", temp0.l").append(argsBuilder).append(");\n");
         }
-        context.output.append((String)this.props.get("trycatchhandler"));
+        context.output.append(this.props.get("trycatchhandler"));
     }
 
     @Override
@@ -311,8 +309,8 @@ public class InvokeDynamicHandler
     }
 
     private static String getTypeLoadCode(MethodContext context, Type type) {
-        String lazz = "";
-        CachedClassInfo fieldType = null;
+        String lazz;
+        CachedClassInfo fieldType;
         switch (type.getSort()) {
             case 9:
             case 10: {
@@ -363,7 +361,7 @@ public class InvokeDynamicHandler
     }
 
     private static String simplifyDesc(String desc) {
-        return Type.getMethodType(InvokeDynamicHandler.simplifyType(Type.getReturnType(desc)), (Type[])Arrays.stream(Type.getArgumentTypes(desc)).map(InvokeDynamicHandler::simplifyType).toArray(Type[]::new)).getDescriptor();
+        return Type.getMethodType(InvokeDynamicHandler.simplifyType(Type.getReturnType(desc)), Arrays.stream(Type.getArgumentTypes(desc)).map(InvokeDynamicHandler::simplifyType).toArray(Type[]::new)).getDescriptor();
     }
 
     private static Type simplifyType(Type type) {

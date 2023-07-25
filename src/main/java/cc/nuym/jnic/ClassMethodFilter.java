@@ -29,7 +29,7 @@ public class ClassMethodFilter {
         if ((classNode.access & Opcodes.ACC_INTERFACE) != 0) {
             return false;
         }
-        if (!Util.isValidJavaFullClassName(classNode.name.replaceAll("/", "."))) {
+        if (Util.isValidJavaFullClassName(classNode.name.replaceAll("/", "."))) {
             return false;
         }
         if (this.blackList != null) {

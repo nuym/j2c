@@ -20,11 +20,11 @@ public class ClassMetadataReader
     }
     
     public List<JarFile> getCp() {
-        return Collections.unmodifiableList((List<? extends JarFile>)this.classPath);
+        return Collections.unmodifiableList(this.classPath);
     }
     
     public ClassMetadataReader() {
-        this.classPath = new ArrayList<JarFile>();
+        this.classPath = new ArrayList<>();
     }
     
     public void acceptVisitor(final byte[] classData, final ClassVisitor visitor) {
@@ -76,7 +76,7 @@ public class ClassMetadataReader
     }
     
     public ArrayList<String> getSuperClasses(String type) {
-        final ArrayList<String> superclasses = new ArrayList<String>(1);
+        final ArrayList<String> superclasses = new ArrayList<>(1);
         superclasses.add(type);
         while ((type = this.getSuperClass(type)) != null) {
             superclasses.add(type);
@@ -90,7 +90,7 @@ public class ClassMetadataReader
             try {
                 file.close();
             }
-            catch (IOException ex) {}
+            catch (IOException ignored) {}
         });
     }
     

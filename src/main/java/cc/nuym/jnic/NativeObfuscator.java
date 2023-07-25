@@ -60,7 +60,7 @@ public class NativeObfuscator {
 
     public NativeObfuscator() {
         this.snippets = new Snippets();
-        this.cachedStrings = new NodeCache<>("(cstrings[%d])");
+        this.cachedStrings = new NodeCache<>();
         this.cachedClasses = new ClassNodeCache("(cclasses[%d])");
         this.cachedMethods = new MethodNodeCache("(cmethods[%d])", this.cachedClasses);
         this.cachedFields = new FieldNodeCache("(cfields[%d])", this.cachedClasses);
@@ -459,7 +459,7 @@ public class NativeObfuscator {
                     ++methodCount;
                 }
                 String className = (String)classNameMap.get(classNode.name);
-                if (!Util.isValidJavaFullClassName(className.replaceAll("/", "."))) continue;
+                if (Util.isValidJavaFullClassName(className.replaceAll("/", "."))) continue;
                 methodName = NativeSignature.getJNICompatibleName(className);
                 mainWriter.append("/* Native registration for <").append(className).append("> */\nJNIEXPORT void JNICALL Java_").append(methodName).append("__00024jnicLoader(JNIEnv *env, jclass clazz) {\n    JNINativeMethod table[] = {\n").append(String.valueOf(registrationMethods)).append("    };\n    (*env)->RegisterNatives(env, clazz, table, ").append(String.valueOf(methodCount)).append(");\n}\n\n");
             }

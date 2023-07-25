@@ -7,12 +7,12 @@ public class FieldNodeCache
 {
     private final String pointerPattern;
     private final Map<CachedFieldInfo, Integer> cache;
-    private ClassNodeCache classNodeCache;
+    private final ClassNodeCache classNodeCache;
     
     public FieldNodeCache(final String pointerPattern, final ClassNodeCache classNodeCache) {
         this.pointerPattern = pointerPattern;
         this.classNodeCache = classNodeCache;
-        this.cache = new HashMap<CachedFieldInfo, Integer>();
+        this.cache = new HashMap<>();
     }
     
     public String getPointer(final CachedFieldInfo fieldInfo) {

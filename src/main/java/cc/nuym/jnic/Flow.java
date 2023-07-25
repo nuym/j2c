@@ -82,7 +82,7 @@ public class Flow {
     }
 
     protected static final class SwitchBlock {
-        private LabelNode labelNode;
+        private final LabelNode labelNode;
         private InsnList insnList;
 
         public SwitchBlock() {

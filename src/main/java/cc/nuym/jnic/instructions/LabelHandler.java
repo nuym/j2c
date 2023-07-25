@@ -12,7 +12,7 @@ public class LabelHandler extends GenericInstructionHandler<LabelNode>
         try {
             super.accept(context, node);
         }
-        catch (UnsupportedOperationException ex) {}
+        catch (UnsupportedOperationException ignored) {}
         context.output.append(String.format("%s:;\n", context.getLabelPool().getName(node.getLabel())));
     }
     

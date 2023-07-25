@@ -5,11 +5,10 @@ import java.util.Iterator;
 
 public class NativeSignature {
     public static void getJNIDefineName(String name, StringBuilder sb) {
-        Iterator iterator = ((Iterable)name.chars()::iterator).iterator();
-        while (iterator.hasNext()) {
-            int cp = (Integer)iterator.next();
+        for (Object o : (Iterable) name.chars()::iterator) {
+            int cp = (Integer) o;
             if (cp >= 97 && cp <= 122 || cp >= 65 && cp <= 90 || cp == 95 || cp >= 48 && cp <= 57) {
-                sb.append((char)cp);
+                sb.append((char) cp);
                 continue;
             }
             sb.append('_');

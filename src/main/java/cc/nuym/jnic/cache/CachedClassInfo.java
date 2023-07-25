@@ -15,8 +15,8 @@ public class CachedClassInfo
     private final List<CachedMethodInfo> cachedMethods;
     
     public CachedClassInfo(final String clazz, final String name, final String desc, final int id, final boolean isStatic) {
-        this.cachedFields = new ArrayList<CachedFieldInfo>();
-        this.cachedMethods = new ArrayList<CachedMethodInfo>();
+        this.cachedFields = new ArrayList<>();
+        this.cachedMethods = new ArrayList<>();
         this.clazz = clazz;
         this.name = name;
         this.desc = desc;
@@ -54,6 +54,7 @@ public class CachedClassInfo
         for (final CachedFieldInfo cachedField : this.cachedFields) {
             if (cachedField.equals(cachedFieldInfo)) {
                 contains = true;
+                break;
             }
         }
         if (!contains) {
@@ -89,6 +90,7 @@ public class CachedClassInfo
         for (final CachedMethodInfo methodInfo : this.cachedMethods) {
             if (methodInfo.equals(cachedMethodInfo)) {
                 contains = true;
+                break;
             }
         }
         if (!contains) {

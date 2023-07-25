@@ -5,16 +5,14 @@ import java.util.Map;
 
 public class NodeCache<T>
 {
-    private final String pointerPattern;
     private final Map<T, Integer> cache;
     
-    public NodeCache(final String pointerPattern) {
-        this.pointerPattern = pointerPattern;
-        this.cache = new HashMap<T, Integer>();
+    public NodeCache() {
+        this.cache = new HashMap<>();
     }
     
-    public String getPointer(final T key) {
-        return String.format(this.pointerPattern, this.getId(key));
+    public void getPointer(final T key) {
+        this.getId(key);
     }
     
     public int getId(final T key) {

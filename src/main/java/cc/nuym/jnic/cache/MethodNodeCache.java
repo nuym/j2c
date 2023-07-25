@@ -7,12 +7,12 @@ public class MethodNodeCache
 {
     private final String pointerPattern;
     private final Map<CachedMethodInfo, Integer> cache;
-    private ClassNodeCache classNodeCache;
+    private final ClassNodeCache classNodeCache;
     
     public MethodNodeCache(final String pointerPattern, final ClassNodeCache classNodeCache) {
         this.pointerPattern = pointerPattern;
         this.classNodeCache = classNodeCache;
-        this.cache = new HashMap<CachedMethodInfo, Integer>();
+        this.cache = new HashMap<>();
     }
     
     public String getPointer(final CachedMethodInfo methodInfo) {
