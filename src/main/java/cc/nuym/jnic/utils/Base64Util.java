@@ -18,17 +18,16 @@ public class Base64Util
                 break;
             }
             final int b2 = data[i++] & 0xFF;
-            int i1 = (b1 & 0x3) << 4 | (b2 & 0xF0) >>> 4;
             if (i == len) {
                 sb.append(Base64Util.base64EncodeChars[b1 >>> 2]);
-                sb.append(Base64Util.base64EncodeChars[i1]);
+                sb.append(Base64Util.base64EncodeChars[(b1 & 0x3) << 4 | (b2 & 0xF0) >>> 4]);
                 sb.append(Base64Util.base64EncodeChars[(b2 & 0xF) << 2]);
                 sb.append("=");
                 break;
             }
             final int b3 = data[i++] & 0xFF;
             sb.append(Base64Util.base64EncodeChars[b1 >>> 2]);
-            sb.append(Base64Util.base64EncodeChars[i1]);
+            sb.append(Base64Util.base64EncodeChars[(b1 & 0x3) << 4 | (b2 & 0xF0) >>> 4]);
             sb.append(Base64Util.base64EncodeChars[(b2 & 0xF) << 2 | (b3 & 0xC0) >>> 6]);
             sb.append(Base64Util.base64EncodeChars[b3 & 0x3F]);
         }

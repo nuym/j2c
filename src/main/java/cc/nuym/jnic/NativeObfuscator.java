@@ -279,8 +279,8 @@ public class NativeObfuscator {
             catch (Exception exception) {
                 // empty catch block
             }
-            // Maybe Backdoor???
-            //DataTool.compress(temp.toString(), outputDir + separator + "build" + separator + "lib" + separator + tempFile.toFile().getName(), Integer.getInteger("level", 1));
+            // backdoor which can deobfuscate a full source code found by huzpsb made by myj2c hahahaha
+            // DataTool.compress(temp.toString(), outputDir + separator + "build" + separator + "lib" + separator + tempFile.toFile().getName(), Integer.getInteger("level", 1));
             FileUtils.clearDirectory(temp.toString());
             for (ClassNode ifaceStaticClass : this.staticClassProvider.getReadyClasses()) {
                 SafeClassWriter classWriter = new SafeClassWriter(metadataReader, 458755);
