@@ -2,7 +2,7 @@
 ```
 Will be open source soon...
 Open source, very fast compilation and running speed of JNIC
-Because of zig,performance bad,you can change it
+Because of zig,performance is bad,you can change it
 ```
 
 | Obfuscator                                                         | Test#1  | Test#2   | Performance | Size  |
