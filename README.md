@@ -9,7 +9,7 @@ Because of zig,performance is bad,you can change it
 |--------------------------------------------------------------------|---------|----------|-------------|-------|
 | [None](https://www.java.com/)                                  | PPPPPPP | PPPPPPPP | 27ms        | 29KB  | 
 | [JNIC-3.5.1](https://jnic.dev/)                                    | PPPPPPP | FPPPEPPP | 481ms       | 89KB  |
-| [nuym's JNIC](https://github.com/nuym/nuymjnic)   | PPPPPPP | FPPPEPPP | 653ms（f**k 11.0 zig）        | 92KB | 
+| [nuym's JNIC](https://github.com/nuym/j2c)   | PPPPPPP | FPPPEPPP | 653ms（f**k 11.0 zig）        | 92KB | 
 
 # DMCA
 For this project I just used the package name dev/jnic, which should not pose a copyright issue...
