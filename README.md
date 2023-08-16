@@ -21,3 +21,4 @@ Under [GNU General Public License v3.0](https://choosealicense.com/licenses/agpl
 # express gratitude (esp. in public)
 - [native-obfuscator](https://github.com/radioegor146/native-obfuscator)
 - [JNIC](jnic.dev)
+- [uniformization](https://github.com/uniformization)
