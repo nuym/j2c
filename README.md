@@ -1,2 +1,3 @@
 # nuymjnic
+Will be open source soon...
 Open source, very fast compilation and running speed of JNIC
