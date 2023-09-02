@@ -1,4 +1,4 @@
-package cc.nuym.jnic;
+package cc.nuym.jnic.utils;
 
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;

@@ -1,10 +1,9 @@
 package cc.nuym.jnic.env;
 
 import cc.nuym.jnic.helpers.ProcessHelper;
-import cc.nuym.jnic.utils.ConsoleColors;
 import cc.nuym.jnic.utils.FileUtils;
 import cc.nuym.jnic.utils.Zipper;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +40,7 @@ public class SetupManager
             downloadZigCompiler(fileName, dirName);
             return;
         }
-        System.out.println("不支持当前的操作系统");
+        System.out.println("This system is not supported. Please contact the developer");
     }
     
     private static String getPlatformTypeName() {
@@ -71,51 +70,38 @@ public class SetupManager
     }
     
     public static boolean isLinux() {
-        return SetupManager.OS.indexOf("linux") >= 0;
+        return SetupManager.OS.contains("linux");
     }
     
     public static boolean isMacOS() {
-        return SetupManager.OS.indexOf("mac") >= 0 && SetupManager.OS.indexOf("os") > 0;
+        return SetupManager.OS.contains("mac") && SetupManager.OS.indexOf("os") > 0;
     }
     
     public static boolean isWindows() {
-        return SetupManager.OS.indexOf("windows") >= 0;
+        return SetupManager.OS.contains("windows");
     }
     
     public static void downloadZigCompiler(final String fileName, final String dirName) {
         if (Files.exists(Paths.get(dirName))) {
-            System.out.println("发现编译器: " + dirName);
+            System.out.println("Found comiler: " + dirName);
             return;
         }
 
         try {
             final String currentDir = System.getProperty("user.dir");
-//            if (Files.exists(Paths.get(currentDir + File.separator + dirName, new String[0]), new LinkOption[0])) {
-//                final String compilePath = currentDir + File.separator + dirName + File.separator + "zig" + (isWindows() ? ".exe" : "");
-//                if (Files.exists(Paths.get(compilePath, new String[0]), new LinkOption[0])) {
-//                    final ProcessHelper.ProcessResult compileRunresult = ProcessHelper.run(Paths.get(currentDir + File.separator + dirName, new String[0]), 160000L, Arrays.asList(compilePath, "version"));
-//                    System.out.println("\nzig version:" + compileRunresult.stdout);
-//                    if (compileRunresult.stdout.contains("0.9.1")) {
-//                        System.out.println("Installing compile tool:" + currentDir + File.separator + dirName);
-//                        return;
-//                    }
-//                }
-//                FileUtils.clearDirectory(currentDir + File.separator + dirName);
-//            }
-
-            System.out.println("下载编译工具:");
-            System.out.println("从以下地方下载: https://ziglang.org/download/0.9.1/" + fileName);
+            System.out.println("Downloading cross compilation tool");
+            System.out.println("Download link：https://ziglang.org/download/0.9.1/" + fileName);
             final InputStream in = new URL("https://ziglang.org/download/0.9.1/" + fileName).openStream();
-            Files.copy(in, Paths.get(currentDir + File.separator + fileName, new String[0]), StandardCopyOption.REPLACE_EXISTING);
-            System.out.println("下载成功");
+            Files.copy(in, Paths.get(currentDir + File.separator + fileName), StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("Download completed, decompressing");
             unzipFile(currentDir, fileName, currentDir);
             deleteFile(currentDir, fileName + ".temp");
             deleteFile(currentDir, fileName);
-            System.out.println("安装成功");
+            System.out.println("Installation of cross compilation tool completed");
             if (!isWindows()) {
                 final String compilePath2 = currentDir + File.separator + dirName + File.separator + "zig";
-                ProcessHelper.run(Paths.get(currentDir, new String[0]), 160000L, Arrays.asList("chmod", "777", compilePath2));
-                System.out.println("执行权限设置为777");
+                ProcessHelper.run(Paths.get(currentDir), 160000L, Arrays.asList("chmod", "777", compilePath2));
+                System.out.println("Successfully set running permission");
             }
         }
         catch (Exception e) {
@@ -129,7 +115,7 @@ public class SetupManager
     
     public static void unzipFile(final String path, final String file, final String destination) {
         try {
-            Zipper.extract(Paths.get(path + File.separator + file, new String[0]), Paths.get(destination, new String[0]));
+            Zipper.extract(Paths.get(path + File.separator + file), Paths.get(destination));
         }
         catch (IOException e) {
             throw new RuntimeException(e);
@@ -151,13 +137,13 @@ public class SetupManager
             }
         }
         final String currentDir = System.getProperty("user.dir");
-        if (Files.exists(Paths.get(currentDir + File.separator + dirName, new String[0]), new LinkOption[0])) {
+        if (Files.exists(Paths.get(currentDir + File.separator + dirName))) {
             final String compilePath = currentDir + File.separator + dirName + File.separator + "zig" + (isWindows() ? ".exe" : "");
-            if (Files.exists(Paths.get(compilePath, new String[0]), new LinkOption[0])) {
+            if (Files.exists(Paths.get(compilePath))) {
                 try {
                     final ProcessHelper.ProcessResult compileRunresult = ProcessHelper.run(Paths.get(currentDir + File.separator + dirName, new String[0]), 160000L, Arrays.asList(compilePath, "env"));
-                    final ObjectMapper mapper = new ObjectMapper();
-                    final Map<String, String> map = mapper.readValue(compileRunresult.stdout, Map.class);
+                    Gson gson = new Gson();
+                    Map<String, String> map = gson.fromJson(compileRunresult.stdout, Map.class);
                     if (clear) {
                         FileUtils.clearDirectory(map.get("global_cache_dir"));
                     }
@@ -167,7 +153,7 @@ public class SetupManager
                 }
             }
         }
-        System.out.println("获取zig临时目录失败");
+        System.out.println("Failed to get zig temporary file directory");
         return "";
     }
     

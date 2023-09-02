@@ -1,4 +1,4 @@
-package cc.nuym.jnic;
+package cc.nuym.jnic.utils;
 
 import cc.nuym.jnic.annotations.Native;
 import cc.nuym.jnic.annotations.NotNative;

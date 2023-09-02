@@ -1,8 +1,8 @@
 // rebuild
 package cc.nuym.jnic.instructions;
 
-import cc.nuym.jnic.MethodContext;
-import cc.nuym.jnic.Util;
+import cc.nuym.jnic.utils.MethodContext;
+import cc.nuym.jnic.utils.Util;
 import cc.nuym.jnic.cache.CachedClassInfo;
 import cc.nuym.jnic.cache.CachedFieldInfo;
 import cc.nuym.jnic.cache.CachedMethodInfo;

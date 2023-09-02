@@ -1,53 +1,67 @@
 package cc.nuym.jnic.xml;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.simpleframework.xml.Element;
+import org.simpleframework.xml.ElementList;
+import org.simpleframework.xml.Root;
 
 import java.util.List;
 
-@JacksonXmlRootElement (localName = "jnic")
-public class Config
-{
-    @JacksonXmlProperty (localName = "target")
-    @JacksonXmlElementWrapper (localName = "targets")
-    private List<String> targets;
-    @JacksonXmlElementWrapper(localName = "include")
-    private List<Match> includes;
-    @JacksonXmlElementWrapper(localName = "exclude")
-    private List<Match> excludes;
-    @JacksonXmlElementWrapper(localName = "options")
-    private String options;
+@Root(name = "jnic")
+public class Config {
 
-    public List<String> getTargets() {
-        return this.targets;
+    @ElementList(name = "targets")
+    private List<String> targets;
+
+
+    public List<String> getPrintmsg() {
+        return printmsg;
     }
 
-    public void setTargets(final List<String> targets) {
+    @ElementList(name = "printmsg",required = false)
+    private List<String> printmsg;
+
+    @Element(name = "options", required = false)
+    private Options options;
+
+    @ElementList(name = "include", type = Match.class, required = false)
+    private List<Match> includes;
+
+    @ElementList(name = "exclude", type = Match.class, required = false)
+    private List<Match> excludes;
+
+
+
+    public List<String> getTargets() {
+        return targets;
+    }
+
+    public void setTargets(List<String> targets) {
         this.targets = targets;
     }
 
     public List<Match> getIncludes() {
-        return this.includes;
+        return includes;
     }
 
-    public void setIncludes(final List<Match> includes) {
+    public void setIncludes(List<Match> includes) {
         this.includes = includes;
     }
 
     public List<Match> getExcludes() {
-        return this.excludes;
+        return excludes;
     }
 
-    public void setExcludes(final List<Match> excludes) {
+    public void setExcludes(List<Match> excludes) {
         this.excludes = excludes;
     }
 
-    public String getOptions() {
+    public Options getOptions() {
         return options;
     }
 
-    public void setOptions(String options) {
+    public void setOptions(Options options) {
         this.options = options;
     }
+
+
 }

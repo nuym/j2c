@@ -1,16 +1,14 @@
 // rebuild
 package cc.nuym.jnic.instructions;
 
-import cc.nuym.jnic.CatchesBlock;
-import cc.nuym.jnic.MethodContext;
+import cc.nuym.jnic.utils.CatchesBlock;
+import cc.nuym.jnic.utils.MethodContext;
 import cc.nuym.jnic.MethodProcessor;
-import cc.nuym.jnic.Util;
+import cc.nuym.jnic.utils.Util;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.TryCatchBlockNode;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class GenericInstructionHandler<T extends AbstractInsnNode>
@@ -21,14 +19,19 @@ public abstract class GenericInstructionHandler<T extends AbstractInsnNode>
 
     @Override
     public void accept(MethodContext context, T node) {
-        this.props = new HashMap<String, String>();
-        ArrayList<TryCatchBlockNode> tryCatchBlockNodeList = new ArrayList<TryCatchBlockNode>();
+        props = new HashMap<>();
+        List<TryCatchBlockNode> tryCatchBlockNodeList = new ArrayList<>();
         for (TryCatchBlockNode tryCatchBlock : context.method.tryCatchBlocks) {
-            if (!context.tryCatches.contains(tryCatchBlock) || !tryCatchBlockNodeList.stream().noneMatch(tryCatchBlockNode -> Objects.equals(tryCatchBlockNode.type, tryCatchBlock.type))) continue;
-            tryCatchBlockNodeList.add(tryCatchBlock);
+            if (!context.tryCatches.contains(tryCatchBlock)) {
+                continue;
+            }
+            if (tryCatchBlockNodeList.stream().noneMatch(tryCatchBlockNode ->
+                    Objects.equals(tryCatchBlockNode.type, tryCatchBlock.type))) {
+                tryCatchBlockNodeList.add(tryCatchBlock);
+            }
         }
-        this.instructionName = MethodProcessor.INSTRUCTIONS.getOrDefault(((AbstractInsnNode)node).getOpcode(), "NOTFOUND");
-        this.props.put("line", String.valueOf(context.line));
+        instructionName = MethodProcessor.INSTRUCTIONS.getOrDefault(node.getOpcode(), "NOTFOUND");
+        props.put("line", String.valueOf(context.line));
         StringBuilder tryCatch = new StringBuilder("\n");
         if (tryCatchBlockNodeList.size() > 0) {
             String tryCatchLabelName = context.catches.computeIfAbsent(new CatchesBlock(tryCatchBlockNodeList.stream().map(item -> new CatchesBlock.CatchBlock(item.type, item.handler)).collect(Collectors.toList())), key -> String.format("L_CATCH_%d", context.catches.size()));
@@ -36,7 +39,7 @@ public abstract class GenericInstructionHandler<T extends AbstractInsnNode>
             tryCatch.append("   cstack0.l = (*env)->ExceptionOccurred(env);\n");
             for (TryCatchBlockNode tryCatchBlockNode2 : tryCatchBlockNodeList) {
                 if (tryCatchBlockNode2.type == null) continue;
-                tryCatch.append("   if ((*env)->IsInstanceOf(env, cstack0.l, c_" + context.obfuscator.getCachedClasses().getId(tryCatchBlockNode2.type) + "_(env)->clazz)) {\n");
+                tryCatch.append("   if ((*env)->IsInstanceOf(env, cstack0.l, c_").append(context.obfuscator.getCachedClasses().getId(tryCatchBlockNode2.type)).append("_(env)->clazz)) {\n");
                 tryCatch.append("       (*env)->ExceptionClear(env);\n");
                 tryCatch.append("       goto ").append(tryCatchLabelName).append(";\n  }\n");
             }
@@ -44,7 +47,7 @@ public abstract class GenericInstructionHandler<T extends AbstractInsnNode>
             tryCatch.append("       goto ").append(tryCatchLabelName).append(";\n");
             tryCatch.append("}\n");
         } else if ("void".equals(MethodProcessor.CPP_TYPES[context.ret.getSort()])) {
-            tryCatch.append(context.getSnippets().getSnippet("TRYCATCH_VOID", Util.createMap(new Object[0])));
+            tryCatch.append(context.getSnippets().getSnippet("TRYCATCH_VOID", Util.createMap()));
         } else {
             String type = "";
             switch (context.ret.getSort()) {

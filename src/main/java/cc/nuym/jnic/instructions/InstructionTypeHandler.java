@@ -1,13 +1,12 @@
 package cc.nuym.jnic.instructions;
 
-import cc.nuym.jnic.MethodContext;
+import cc.nuym.jnic.utils.MethodContext;
 import org.objectweb.asm.tree.AbstractInsnNode;
 
-public interface InstructionTypeHandler<T extends AbstractInsnNode>
-{
-    void accept(final MethodContext p0, final T p1);
-    
-    String insnToString(final MethodContext p0, final T p1);
-    
-    int getNewStackPointer(final T p0, final int p1);
+public interface InstructionTypeHandler<T extends AbstractInsnNode> {
+    void accept(MethodContext context, T node);
+
+    String insnToString(MethodContext context, T node);
+
+    int getNewStackPointer(T node, int currentStackPointer);
 }

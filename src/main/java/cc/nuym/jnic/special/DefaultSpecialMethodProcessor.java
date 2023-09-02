@@ -1,7 +1,7 @@
 package cc.nuym.jnic.special;
 
-import cc.nuym.jnic.MethodContext;
-import cc.nuym.jnic.Util;
+import cc.nuym.jnic.utils.MethodContext;
+import cc.nuym.jnic.utils.Util;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 

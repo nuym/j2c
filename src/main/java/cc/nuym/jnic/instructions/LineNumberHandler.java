@@ -1,6 +1,6 @@
 package cc.nuym.jnic.instructions;
 
-import cc.nuym.jnic.MethodContext;
+import cc.nuym.jnic.utils.MethodContext;
 import org.objectweb.asm.tree.LineNumberNode;
 
 public class LineNumberHandler implements InstructionTypeHandler<LineNumberNode>

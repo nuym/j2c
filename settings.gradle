@@ -3,3 +3,6 @@
  */
 
 rootProject.name = 'Jnic'
+include 'Loader'
+include 'Annotation'
+

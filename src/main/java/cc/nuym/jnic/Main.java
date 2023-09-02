@@ -1,29 +1,29 @@
 package cc.nuym.jnic;
 
 import cc.nuym.jnic.env.SetupManager;
-import cc.nuym.jnic.utils.ConsoleColors;
 import cc.nuym.jnic.utils.DecryptorClass;
-import cc.nuym.jnic.utils.StringUtils;
 import cc.nuym.jnic.utils.TamperUtils;
 import cc.nuym.jnic.xml.Config;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.objectweb.asm.tree.*;
-import org.objectweb.asm.*;
 import org.apache.commons.compress.utils.IOUtils;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.*;
+import org.simpleframework.xml.Serializer;
+import org.simpleframework.xml.core.Persister;
 import picocli.CommandLine;
 
 import java.io.*;
 import java.lang.reflect.Array;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.FileAttribute;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.zip.ZipEntry;
@@ -41,61 +41,12 @@ public class Main
 
 
     public static void main(final String[] args) {
-        final String processors =
-                String.format("%19.19s", "Processors:")
-                        + "   "
-                        + String.format(
-                        "%-19.19s",
-                        Runtime.getRuntime().availableProcessors() + " cores"
-                );
-
-        final long freeMemory = Math.round(Runtime.getRuntime().freeMemory() / 1E6);
-        final String memory =
-                String.format("%19.19s", "Current Memory:")
-                        + "   "
-                        + String.format("%-19.19s", freeMemory + "mb");
-
-        final long maxMemory = Math.round(Runtime.getRuntime().maxMemory() / 1E6);
-        final String memoryString = (maxMemory == Long.MAX_VALUE
-                ? ConsoleColors.GREEN + "no limit"
-                : maxMemory + "mb"
-        );
-        String topMemory =
-                String.format("%19.19s", "Max Memory:")
-                        + "   "
-                        + String.format("%-19.19s",
-                        memoryString + (maxMemory > 1500 ? "" : " ⚠️")
-                );
-
-        topMemory = StringUtils.replaceColor(
-                topMemory,
-                memoryString,
-                maxMemory > 1500 ? ConsoleColors.GREEN_BRIGHT : ConsoleColors.RED_BRIGHT
-        );
-        // slight fix for thing
-        topMemory = topMemory.replace("⚠️", "⚠️ ");
-        SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
-        Date dat = new Date(System.currentTimeMillis());
-        String date = formatter.format(dat);
-        System.out.println("                                       _____            __           ");
-        System.out.println("                                      |     \\          |  \\          ");
-        System.out.println("                                       \\$$$$$ _______   \\$$  _______");
-        System.out.println("                                         | $$|       \\ |  \\ /       \\");
-        System.out.println("                                    __   | $$| $$$$$$$\\| $$|  $$$$$$$");
-        System.out.println("                                   |  \\  | $$| $$  | $$| $$| $$      ");
-        System.out.println("                                   | $$__| $$| $$  | $$| $$| $$_____ ");
-        System.out.println("                                    \\$$    $$| $$  | $$| $$ \\$$     \\");
-        System.out.println("                                     \\$$$$$$  \\$$   \\$$ \\$$  \\$$$$$$$");
-        System.out.println("");
-        System.out.println("                               ┌───────────────────────────────────────────┐");
-        System.out.println("                               │"               + processors             +"  │");
-        System.out.println("                               │"               + memory                 +"  │");
-        System.out.println("                               └───────────────────────────────────────────┘");
-        System.out.println("");
-        System.out.println("                          作者: nuym     版本: 2.0.6     现在时间: "+ DateFormat.getDateTimeInstance().format(new Date(Instant.now().toEpochMilli())));
-        System.out.println("\n初始化中...");
+        System.out.println("\n");
+        System.out.println("JNIC Java to C translator 3.6.1");
+        System.out.println(" ~ (c) +Vincent Tang 2020-2023");
+        System.out.println("\n");
+        System.out.println("License: nuym (Enterprise)");
         SetupManager.init();
-        System.out.println("初始化完成!\n");
         System.exit(new CommandLine(new NativeObfuscatorRunner()).setCaseInsensitiveEnumValuesAllowed(true).execute(args));
     }
     
@@ -144,22 +95,28 @@ public class Main
     @CommandLine.Command(name = "Jnic", mixinStandardHelpOptions = true, version = { "Jnic Bytecode Translator" }, description = { "将.jar文件翻译成.c文件并生成输出.jar文件" })
     private static class NativeObfuscatorRunner implements Callable<Integer>
     {
-        @CommandLine.Parameters(index = "0", description = { "要转译的Jar文件" })
+        @CommandLine.Parameters(index = "0", description = "Jar file to transpile")
         private File jarFile;
-        @CommandLine.Parameters(index = "1", description = { "输出目录" })
+
+        @CommandLine.Parameters(index = "1", description = "Output directory")
         private String outputDirectory;
-        @CommandLine.Option(names = { "-c", "--config" }, defaultValue = "config.xml", description = { "Config file" })
+
+        @CommandLine.Option(names = {"-c", "--config"}, defaultValue = "config.xml",
+                description = "Config file")
         private File config;
-        @CommandLine.Option(names = { "-l", "--libraries" }, description = { "依赖库的目录" })
+
+        @CommandLine.Option(names = {"-l", "--libraries"}, description = "Directory for dependent libraries")
         private File librariesDirectory;
-        @CommandLine.Option(names = { "--plain-lib-name" }, description = { "用于加载器的普通库名称" })
-        private String libraryName;
-        @CommandLine.Option(names = { "-a", "--annotations" }, description = { "使用注解来忽略/包含本地混淆的内容" })
+
+        @CommandLine.Option(names = {"-a", "--annotations"}, description = "Use annotations to ignore/include native obfuscation")
         private boolean useAnnotations;
+        @CommandLine.Option(names = { "--plain-lib-name" }, description = { "Common library name to be used for the loader" })
+        private String libraryName;
         
         @Override
         public Integer call() throws Exception {
-            System.out.println("读取配置文件:" + this.config.toPath());
+            System.out.println("Reading input jar " + this.jarFile);
+            System.out.println("Reading configuration file " + this.config.toPath());
             final StringBuilder stringBuilder = new StringBuilder();
             if (Files.exists(this.config.toPath())) {
                 try (final BufferedReader br = Files.newBufferedReader(this.config.toPath())) {
@@ -170,9 +127,8 @@ public class Main
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                final ObjectMapper objectMapper = new XmlMapper();
-                final Config configInfo;
-                configInfo = objectMapper.readValue(stringBuilder.toString(), Config.class);
+                Serializer serializer = new Persister();
+                Config configInfo = serializer.read(Config.class, stringBuilder.toString());
                 final List<Path> libs = new ArrayList<Path>();
                 if (this.librariesDirectory != null) {
                     Files.walk(this.librariesDirectory.toPath(), FileVisitOption.FOLLOW_LINKS).filter(f -> f.toString().endsWith(".jar") || f.toString().endsWith(".zip")).forEach(libs::add);
@@ -190,20 +146,49 @@ public class Main
                 }
                 //开始处理
                 new NativeObfuscator().process(this.jarFile.toPath(), Paths.get(this.outputDirectory), configInfo, libs, this.libraryName, this.useAnnotations);
+                /*
                 try {
                     String jarName = this.jarFile.getName().substring(0, this.jarFile.getName().length() - 4);
                     obf(new File(outputDirectory + "\\" + this.jarFile.getName()), new File(outputDirectory + "\\" + jarName + "-enc.jar"));
                 } catch (Throwable e) {
                     throw new RuntimeException(e);
                 }
+
+                 */
                 return 0;
             }
 
             final Path path = Files.createFile(this.config.toPath(), (FileAttribute<?>[])new FileAttribute[0]);
-            stringBuilder.append("<jnic>\n\t<targets>\n\t\t<target>WINDOWS_X86_64</target>\n\t\t<!--<target>WINDOWS_AARCH64</target>\n\t\t<target>MACOS_X86_64</target>\n\t\t<target>MACOS_AARCH64</target>-->\n\t\t<target>LINUX_X86_64</target>\n\t\t<!--<target>LINUX_AARCH64</target>-->\n\t</targets>\n\t<include>\n\t\t<!-- match支持 Ant 风格的路径匹配 ? 匹配一个字符, * 匹配多个字符, ** 匹配多层路径 -->\n\t\t<match className=\"**\" />\n\t\t<!--<match className=\"cn/jnic/web/**\" />-->\n\t\t<!--<match className=\"cn.jnic.service.**\" />-->\n\t</include>\n\t<exclude>\n\t\t<!--<match className=\"cn/jnic/Main\" methodName=\"main\" methodDesc=\"(\\[Ljava/lang/String;)V\"/>-->\n\t\t<!--<match className=\"cn.jnic.test.**\" />-->\n\t</exclude>\n</jnic>\n");
+            stringBuilder.append("<jnic>\n" +
+                    "\t<targets>\n" +
+                    "\t\t<target>WINDOWS_X86_64</target>\n" +
+                    "\t\t<!--<target>WINDOWS_AARCH64</target>-->\n" +
+                    "\t\t<target>MACOS_X86_64</target>\n" +
+                    "\t\t<!--<target>MACOS_AARCH64</target>-->\n" +
+                    "\t\t<target>LINUX_X86_64</target>\n" +
+                    "\t\t<!--<target>LINUX_AARCH64</target>-->\n" +
+                    "\t</targets>\n" +
+                    "\t<options>\n" +
+                    "\t\t<!--String obfuscation-->\n" +
+                    "\t\t<stringObf>false</stringObf>\n" +
+                    "\t\t<!--Control flow obfuscation-->\n" +
+                    "\t\t<flowObf>false</flowObf>\n" +
+                    "\t</options>" +
+                    "\t<include>\n" +
+                    "\t\t<!-- Match supports Ant style path matching? Match one character, * match multiple characters, * * match multiple paths -->\n" +
+                    "\t\t<match className=\"**\" />\n" +
+                    "\t\t<!--<match className=\"dev/jnic/web/**\" />-->\n" +
+                    "\t\t<!--<match className=\"dev.jnic.service.**\" />-->\n" +
+                    "\t</include>\n" +
+                    "\t<exclude>\n" +
+                    "\t\t<!--<match className=\"dev/jnic/Main\" methodName=\"main\" methodDesc=\"(\\[Ljava/lang/String;)V\"/>-->\n" +
+                    "\t\t<!--<match className=\"dev.jnic.test.**\" />-->\n" +
+                    "\t</exclude>\n" +
+                    "</jnic>\n");
             Files.write(path, stringBuilder.toString().getBytes(StandardCharsets.UTF_8));
-            System.out.println("无法读取配置文件，自动生成的默认配置文件。");
-            System.out.println("Jnic现在将退出，请在编辑配置文件后再次运行。");
+            System.out.println("Unable to read configuration file. Default config has been generated for you");
+            System.out.println("The default configuration compiles all classes and methods, which will seriously affect the running performance of the program. Please use this function with caution");
+            System.out.println("Please open the configuration file, configure the compiled classes and methods, and then continue to run the command");
             return 0;
         }
     }
@@ -323,6 +308,7 @@ public class Main
         zos.setComment("Jnic is a powerful native Java bytecode obfuscator made by nuym.\nObfuscation time: "+date+"\nContact:1006800345@qq.com\nCatch me if you can!");
         zos.close();
     }
+
     private static byte[] getBytesFromInputStream(InputStream is) throws IOException
     {
         ByteArrayOutputStream os = new ByteArrayOutputStream();

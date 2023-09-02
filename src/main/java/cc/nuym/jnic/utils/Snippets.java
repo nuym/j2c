@@ -1,4 +1,4 @@
-package cc.nuym.jnic;
+package cc.nuym.jnic.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

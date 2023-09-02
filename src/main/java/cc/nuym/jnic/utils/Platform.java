@@ -1,4 +1,4 @@
-package cc.nuym.jnic;
+package cc.nuym.jnic.utils;
 
 public enum Platform
 {

@@ -49,7 +49,7 @@ public class Flow {
                     insnList.add(labelNode4);
                     insnList.add(new FieldInsnNode(178, classNode.name, FLOW_FIELD_NAME, "J"));
                     while ((l = ThreadLocalRandom.current().nextLong()) == flowFieldValue) {
-                }
+                    }
                     insnList.add(ASMUtils.pushLong(l));
                     insnList.add(new InsnNode(148));
                     insnList.add(new InsnNode(89));
@@ -82,7 +82,7 @@ public class Flow {
     }
 
     protected static final class SwitchBlock {
-        private final LabelNode labelNode;
+        private LabelNode labelNode;
         private InsnList insnList;
 
         public SwitchBlock() {
@@ -148,4 +148,3 @@ public class Flow {
         return InsnBuilder.createEmpty().insn(ASMUtils.pushLong(new Random().nextLong()), new InsnNode(LDIV)).getInsnList();
     }
 }
-

@@ -1,5 +1,6 @@
-package cc.nuym.jnic;
+package cc.nuym.jnic.utils;
 
+import cc.nuym.jnic.NativeObfuscator;
 import cc.nuym.jnic.cache.ClassNodeCache;
 import cc.nuym.jnic.cache.FieldNodeCache;
 import cc.nuym.jnic.cache.MethodNodeCache;

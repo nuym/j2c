@@ -1,5 +1,5 @@
 // rebuild
-package cc.nuym.jnic;
+package cc.nuym.jnic.utils;
 
 import org.objectweb.asm.Label;
 

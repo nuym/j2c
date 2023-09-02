@@ -1,8 +1,9 @@
 package cc.nuym.jnic.instructions;
 
-import cc.nuym.jnic.MethodContext;
+import cc.nuym.jnic.utils.MethodContext;
 import cc.nuym.jnic.MethodProcessor;
-import cc.nuym.jnic.Util;
+import cc.nuym.jnic.utils.Util;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.TypeInsnNode;
 
 public class TypeHandler extends GenericInstructionHandler<TypeInsnNode>
@@ -26,17 +27,13 @@ public class TypeHandler extends GenericInstructionHandler<TypeInsnNode>
     @Override
     public int getNewStackPointer(final TypeInsnNode node, final int currentStackPointer) {
         switch (node.getOpcode()) {
-            case 189:
-            case 192:
-            case 193: {
+            case Opcodes.ANEWARRAY:
+            case Opcodes.CHECKCAST:
+            case Opcodes.INSTANCEOF:
                 return currentStackPointer;
-            }
-            case 187: {
+            case Opcodes.NEW:
                 return currentStackPointer + 1;
-            }
-            default: {
-                throw new RuntimeException();
-            }
         }
+        throw new RuntimeException();
     }
 }

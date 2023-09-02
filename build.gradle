@@ -13,23 +13,24 @@ repositories {
 }
 
 group = 'cc.nuym.jnic'
-version = '1.0-SNAPSHOT'
+version = '3.6.1'
 description = 'Jnic'
 
 targetCompatibility = sourceCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.14.2'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.14.2'
-
+    //implementation project(':Loader')
     implementation 'org.ow2.asm:asm-commons:9.4'
     implementation 'org.ow2.asm:asm-tree:9.4'
 
     implementation 'org.apache.commons:commons-compress:1.22'
-
+    implementation 'com.google.code.gson:gson:2.10'
     implementation 'info.picocli:picocli:4.7.1'
-    implementation 'org.projectlombok:lombok:1.18.22'
+    implementation("org.simpleframework:simple-xml:2.7.1") {
+        exclude group: 'xpp3'
+        exclude group: 'stax'
+    }
+    implementation project(path: ':Annotation')
 }
 
 tasks.withType(JavaCompile) {
@@ -37,6 +38,29 @@ tasks.withType(JavaCompile) {
 }
 
 shadowJar {
+    classifier null
+    //minimize()
+    // relocate "oshi", "cn.nuym.oshi"
+    relocate "picocli", "cc.nuym.depend.picocli"
+    relocate "ch.qos", "cc.nuym.depend.qos"
+    //relocate "com.intellij", "cn.nuym"
+    relocate "com.ctc", "cc.nuym.depend"
+    relocate "com.fasterxml", "cc.nuym.depend"
+    //relocate "com.sun", "cn.nuym"
+    relocate "org.apache", "cc.nuym.depend"
+    relocate "org.simpleframework", "cc.nuym.depend"
+    relocate "com.google", "cc.nuym.depend"
+    relocate "org.codehaus", "cc.nuym.depend"
+    relocate "org.objectweb", "cc.nuym.depend"
+    relocate "lombok", "cn.nuym.depend"
+    relocate "Class50", "cn.nuym.depend"
+    relocate "com.zwitserloot", "cn.nuym.depend"
+    exclude 'AUTHORS'
+    exclude 'LICENSE'
+    exclude 'latestchanges.html'
+    exclude 'README.md'
+    exclude 'changelog.txt'
+    exclude 'release-timestamp.txt'
 }
 
 jar.manifest.attributes(

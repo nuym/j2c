@@ -1,6 +1,8 @@
 // rebuild
 package cc.nuym.jnic;
 
+import cc.nuym.jnic.annotations.Virtualization;
+import cc.nuym.jnic.annotations.VirtualizationLock;
 import cc.nuym.jnic.special.ClInitSpecialMethodProcessor;
 import cc.nuym.jnic.special.DefaultSpecialMethodProcessor;
 import cc.nuym.jnic.special.SpecialMethodProcessor;
@@ -22,6 +24,9 @@ import cc.nuym.jnic.instructions.MultiANewArrayHandler;
 import cc.nuym.jnic.instructions.TableSwitchHandler;
 import cc.nuym.jnic.instructions.TypeHandler;
 import cc.nuym.jnic.instructions.VarHandler;
+import cc.nuym.jnic.utils.CatchesBlock;
+import cc.nuym.jnic.utils.MethodContext;
+import cc.nuym.jnic.utils.Util;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -55,12 +60,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class MethodProcessor {
-    public static final Map<Integer, String> INSTRUCTIONS = new HashMap<Integer, String>();
     public static final String[] CPP_TYPES;
     public static final int[] TYPE_TO_STACK;
     public static final int[] STACK_TO_STACK;
     private final NativeObfuscator obfuscator;
     private final InstructionHandlerContainer<?>[] handlers;
+    private static final String VM_NATIVE_ANNOTATION_DESC = Type.getDescriptor(Virtualization.class);
+    private static final String VMLOCK_NATIVE_ANNOTATION_DESC = Type.getDescriptor(VirtualizationLock.class);
+    public static final Map<Integer, String> INSTRUCTIONS = new HashMap<>();
+
 
     public MethodProcessor(NativeObfuscator obfuscator) {
         this.obfuscator = obfuscator;
@@ -105,21 +113,28 @@ public class MethodProcessor {
 
     public void processMethod(MethodContext context) {
         MethodNode method = context.method;
+
         SpecialMethodProcessor specialMethodProcessor = this.getSpecialMethodProcessor(method.name);
+
         if ("<clinit>".equals(method.name) && method.instructions.size() == 0) {
             context.obfuscator.getNoInitClassMap().put(context.clazz.name, "1");
             specialMethodProcessor.postProcess(context);
             return;
         }
+
         StringBuilder output = context.output;
+
         if (specialMethodProcessor == null) {
             throw new RuntimeException(String.format("Could not find special method processor for %s", method.name));
         }
+
         output.append("/* " + context.clazz.name + ".").append(Util.escapeCommentString(method.name)).append(Util.escapeCommentString(method.desc)).append("*/");
         output.append("\n");
         specialMethodProcessor.preProcess(context);
+
         String methodName = Util.escapeCppNameString("jnic_" + context.methodIndex);
         context.obfuscator.getClassMethodNameMap().put(context.clazz.name + "." + method.name + method.desc, methodName);
+
         boolean isStatic = Util.getFlag(method.access, 8);
         context.ret = Type.getReturnType(method.desc);
         Type[] args = Type.getArgumentTypes(method.desc);
@@ -318,6 +333,7 @@ public class MethodProcessor {
                 output.append("    return temp0.l;\n");
             }
         }
+
         output.append("}\n\n");
         method.localVariables.clear();
         method.tryCatchBlocks.clear();

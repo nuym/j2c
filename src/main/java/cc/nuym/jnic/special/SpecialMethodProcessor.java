@@ -1,6 +1,6 @@
 package cc.nuym.jnic.special;
 
-import cc.nuym.jnic.MethodContext;
+import cc.nuym.jnic.utils.MethodContext;
 
 public interface SpecialMethodProcessor
 {

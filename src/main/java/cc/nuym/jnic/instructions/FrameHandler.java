@@ -1,9 +1,11 @@
 // rebuild
 package cc.nuym.jnic.instructions;
 
-import cc.nuym.jnic.MethodContext;
+import cc.nuym.jnic.utils.MethodContext;
 import cc.nuym.jnic.MethodProcessor;
-import cc.nuym.jnic.Util;
+import cc.nuym.jnic.utils.Util;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.FrameNode;
 import org.objectweb.asm.tree.LabelNode;
 
@@ -16,72 +18,75 @@ public class FrameHandler
     public void accept(MethodContext context, FrameNode node) {
         Consumer<Object> appendLocal = local -> {
             if (local instanceof String) {
-                context.locals.add(MethodProcessor.TYPE_TO_STACK[10]);
+                context.locals.add(MethodProcessor.TYPE_TO_STACK[Type.OBJECT]);
             } else if (local instanceof LabelNode) {
-                context.locals.add(MethodProcessor.TYPE_TO_STACK[10]);
+                context.locals.add(MethodProcessor.TYPE_TO_STACK[Type.OBJECT]);
             } else {
-                context.locals.add(MethodProcessor.STACK_TO_STACK[(Integer)local]);
+                context.locals.add(MethodProcessor.STACK_TO_STACK[(int) local]);
             }
         };
+
         Consumer<Object> appendStack = stack -> {
             if (stack instanceof String) {
-                context.stack.add(MethodProcessor.TYPE_TO_STACK[10]);
+                context.stack.add(MethodProcessor.TYPE_TO_STACK[Type.OBJECT]);
             } else if (stack instanceof LabelNode) {
-                context.stack.add(MethodProcessor.TYPE_TO_STACK[10]);
+                context.stack.add(MethodProcessor.TYPE_TO_STACK[Type.OBJECT]);
             } else {
-                context.stack.add(MethodProcessor.STACK_TO_STACK[(Integer)stack]);
+                context.stack.add(MethodProcessor.STACK_TO_STACK[(int) stack]);
             }
         };
+
         switch (node.type) {
-            case 1: {
+            case Opcodes.F_APPEND:
                 node.local.forEach(appendLocal);
                 context.stack.clear();
                 break;
-            }
-            case 2: {
+
+            case Opcodes.F_CHOP:
                 node.local.forEach(item -> context.locals.remove(context.locals.size() - 1));
                 context.stack.clear();
                 break;
-            }
-            case -1:
-            case 0: {
+
+            case Opcodes.F_NEW:
+            case Opcodes.F_FULL:
                 context.locals.clear();
                 context.stack.clear();
                 node.local.forEach(appendLocal);
                 node.stack.forEach(appendStack);
                 break;
-            }
-            case 3: {
+
+            case Opcodes.F_SAME:
                 context.stack.clear();
                 break;
-            }
-            case 4: {
+
+            case Opcodes.F_SAME1:
                 context.stack.clear();
                 appendStack.accept(node.stack.get(0));
-            }
+                break;
         }
     }
 
     @Override
     public String insnToString(MethodContext context, FrameNode node) {
-        return String.format("FRAME %s L: %s S: %s", Util.getOpcodesString(node.type, "F_"), node.local == null ? "null" : Arrays.toString(node.local.toArray(new Object[0])), node.stack == null ? "null" : Arrays.toString(node.stack.toArray(new Object[0])));
+        return String.format("FRAME %s L: %s S: %s", Util.getOpcodesString(node.type, "F_"),
+                node.local == null ? "null" : Arrays.toString(node.local.toArray(new Object[0])),
+                node.stack == null ? "null" : Arrays.toString(node.stack.toArray(new Object[0])));
     }
 
     @Override
     public int getNewStackPointer(FrameNode node, int currentStackPointer) {
         switch (node.type) {
-            case 1:
-            case 2:
-            case 3: {
+            case Opcodes.F_APPEND:
+            case Opcodes.F_SAME:
+            case Opcodes.F_CHOP:
                 return 0;
-            }
-            case -1:
-            case 0: {
-                return node.stack.stream().mapToInt(argument -> Math.max(1, argument instanceof Integer ? MethodProcessor.STACK_TO_STACK[(Integer)argument] : MethodProcessor.TYPE_TO_STACK[10])).sum();
-            }
-            case 4: {
-                return node.stack.stream().limit(1L).mapToInt(argument -> Math.max(1, argument instanceof Integer ? MethodProcessor.STACK_TO_STACK[(Integer)argument] : MethodProcessor.TYPE_TO_STACK[10])).sum();
-            }
+            case Opcodes.F_NEW:
+            case Opcodes.F_FULL:
+                return node.stack.stream().mapToInt(argument -> Math.max(1, argument instanceof Integer ?
+                        MethodProcessor.STACK_TO_STACK[(int) argument] : MethodProcessor.TYPE_TO_STACK[Type.OBJECT])).sum();
+            case Opcodes.F_SAME1:
+                return node.stack.stream().limit(1).mapToInt(argument -> Math.max(1, argument instanceof Integer ?
+                        MethodProcessor.STACK_TO_STACK[(int) argument] : MethodProcessor.TYPE_TO_STACK[Type.OBJECT])).sum();
         }
         throw new RuntimeException();
     }

@@ -1,50 +1,46 @@
 package cc.nuym.jnic.instructions;
 
-import cc.nuym.jnic.MethodContext;
-import cc.nuym.jnic.Util;
+import cc.nuym.jnic.utils.MethodContext;
+import cc.nuym.jnic.utils.Util;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.JumpInsnNode;
 
-public class JumpHandler extends GenericInstructionHandler<JumpInsnNode>
-{
+public class JumpHandler extends GenericInstructionHandler<JumpInsnNode> {
+
     @Override
-    protected void process(final MethodContext context, final JumpInsnNode node) {
-        this.props.put("label", String.valueOf(context.getLabelPool().getName(node.label.getLabel())));
+    protected void process(MethodContext context, JumpInsnNode node) {
+        props.put("label", String.valueOf(context.getLabelPool().getName(node.label.getLabel())));
     }
-    
+
     @Override
-    public String insnToString(final MethodContext methodContext, final JumpInsnNode node) {
+    public String insnToString(MethodContext methodContext, JumpInsnNode node) {
         return String.format("%s %s", Util.getOpcodeString(node.getOpcode()), methodContext.getLabelPool().getName(node.label.getLabel()));
     }
-    
+
     @Override
-    public int getNewStackPointer(final JumpInsnNode node, final int currentStackPointer) {
+    public int getNewStackPointer(JumpInsnNode node, int currentStackPointer) {
         switch (node.getOpcode()) {
-            case 153:
-            case 154:
-            case 155:
-            case 156:
-            case 157:
-            case 158:
-            case 198:
-            case 199: {
+            case Opcodes.IFEQ:
+            case Opcodes.IFNE:
+            case Opcodes.IFLT:
+            case Opcodes.IFGE:
+            case Opcodes.IFGT:
+            case Opcodes.IFLE:
+            case Opcodes.IFNULL:
+            case Opcodes.IFNONNULL:
                 return currentStackPointer - 1;
-            }
-            case 159:
-            case 160:
-            case 161:
-            case 162:
-            case 163:
-            case 164:
-            case 165:
-            case 166: {
+            case Opcodes.IF_ICMPEQ:
+            case Opcodes.IF_ICMPNE:
+            case Opcodes.IF_ICMPLT:
+            case Opcodes.IF_ICMPGE:
+            case Opcodes.IF_ICMPGT:
+            case Opcodes.IF_ICMPLE:
+            case Opcodes.IF_ACMPEQ:
+            case Opcodes.IF_ACMPNE:
                 return currentStackPointer - 2;
-            }
-            case 167: {
+            case Opcodes.GOTO:
                 return currentStackPointer;
-            }
-            default: {
-                throw new RuntimeException();
-            }
         }
+        throw new RuntimeException();
     }
 }

@@ -1,7 +1,7 @@
 // rebuild
 package cc.nuym.jnic.instructions;
 
-import cc.nuym.jnic.MethodContext;
+import cc.nuym.jnic.utils.MethodContext;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 

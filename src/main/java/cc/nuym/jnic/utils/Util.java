@@ -1,6 +1,6 @@
 // rebuild
-package cc.nuym.jnic;
-import cc.nuym.jnic.utils.Zipper;
+package cc.nuym.jnic.utils;
+import cc.nuym.jnic.NativeObfuscator;
 import org.objectweb.asm.Opcodes;
 
 import java.io.ByteArrayOutputStream;
@@ -126,7 +126,7 @@ public class Util {
         out.closeEntry();
     }
 
-    static void transfer(InputStream in, OutputStream out) throws IOException {
+    public static void transfer(InputStream in, OutputStream out) throws IOException {
         byte[] buffer = new byte[4096];
         int r = in.read(buffer, 0, 4096);
         while (r != -1) {

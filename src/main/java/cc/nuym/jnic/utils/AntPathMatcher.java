@@ -1,6 +1,4 @@
-package cc.nuym.jnic;
-
-import cc.nuym.jnic.utils.StringUtils;
+package cc.nuym.jnic.utils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

@@ -1,27 +1,27 @@
 package cc.nuym.jnic.instructions;
 
-import cc.nuym.jnic.MethodContext;
+import cc.nuym.jnic.utils.MethodContext;
 import org.objectweb.asm.tree.AbstractInsnNode;
 
-public class InstructionHandlerContainer<T extends AbstractInsnNode>
-{
+public class InstructionHandlerContainer<T extends AbstractInsnNode> {
+
     private final InstructionTypeHandler<T> handler;
     private final Class<T> clazz;
-    
-    public InstructionHandlerContainer(final InstructionTypeHandler<T> handler, final Class<T> clazz) {
+
+    public InstructionHandlerContainer(InstructionTypeHandler<T> handler, Class<T> clazz) {
         this.handler = handler;
         this.clazz = clazz;
     }
-    
-    public void accept(final MethodContext context, final AbstractInsnNode node) {
-        this.handler.accept(context, this.clazz.cast(node));
+
+    public void accept(MethodContext context, AbstractInsnNode node) {
+        handler.accept(context, clazz.cast(node));
     }
-    
-    public String insnToString(final MethodContext context, final AbstractInsnNode node) {
-        return this.handler.insnToString(context, this.clazz.cast(node));
+
+    public String insnToString(MethodContext context, AbstractInsnNode node) {
+        return handler.insnToString(context, clazz.cast(node));
     }
-    
-    public int getNewStackPointer(final AbstractInsnNode node, final int stackPointer) {
-        return this.handler.getNewStackPointer(this.clazz.cast(node), stackPointer);
+
+    public int getNewStackPointer(AbstractInsnNode node, int stackPointer) {
+        return handler.getNewStackPointer(clazz.cast(node), stackPointer);
     }
 }

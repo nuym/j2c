@@ -1,7 +1,7 @@
 package cc.nuym.jnic.instructions;
 
-import cc.nuym.jnic.MethodContext;
-import cc.nuym.jnic.Util;
+import cc.nuym.jnic.utils.MethodContext;
+import cc.nuym.jnic.utils.Util;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.LdcInsnNode;
 
@@ -45,7 +45,7 @@ public class LdcHandler extends GenericInstructionHandler<LdcInsnNode>
     protected void process(final MethodContext context, final LdcInsnNode node) {
         final Object cst = node.cst;
         if (cst instanceof String) {
-            if (node.cst.toString() != null && node.cst.toString().length() > 0) {
+            if (node.cst.toString().length() > 0) {
                 this.instructionName += "_STRING";
                 this.props.put("cst_ptr", Util.utf82unicode(node.cst.toString()));
                 this.props.put("cst_length", "" + node.cst.toString().length());

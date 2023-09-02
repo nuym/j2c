@@ -1,37 +1,34 @@
 package cc.nuym.jnic.instructions;
 
-import cc.nuym.jnic.MethodContext;
-import cc.nuym.jnic.Util;
+import cc.nuym.jnic.utils.MethodContext;
+import cc.nuym.jnic.utils.Util;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.IntInsnNode;
 
-public class IntHandler extends GenericInstructionHandler<IntInsnNode>
-{
+public class IntHandler extends GenericInstructionHandler<IntInsnNode> {
+
     @Override
-    protected void process(final MethodContext context, final IntInsnNode node) {
-        this.props.put("operand", String.valueOf(node.operand));
-        if (node.getOpcode() == 188) {
-            this.instructionName = this.instructionName + "_" + node.operand;
+    protected void process(MethodContext context, IntInsnNode node) {
+        props.put("operand", String.valueOf(node.operand));
+        if (node.getOpcode() == Opcodes.NEWARRAY) {
+            instructionName += "_" + node.operand;
         }
     }
-    
+
     @Override
-    public String insnToString(final MethodContext context, final IntInsnNode node) {
+    public String insnToString(MethodContext context, IntInsnNode node) {
         return String.format("%s %d", Util.getOpcodeString(node.getOpcode()), node.operand);
     }
-    
+
     @Override
-    public int getNewStackPointer(final IntInsnNode node, final int currentStackPointer) {
+    public int getNewStackPointer(IntInsnNode node, int currentStackPointer) {
         switch (node.getOpcode()) {
-            case 16:
-            case 17: {
+            case Opcodes.BIPUSH:
+            case Opcodes.SIPUSH:
                 return currentStackPointer + 1;
-            }
-            case 188: {
+            case Opcodes.NEWARRAY:
                 return currentStackPointer;
-            }
-            default: {
-                throw new RuntimeException();
-            }
         }
+        throw new RuntimeException();
     }
 }

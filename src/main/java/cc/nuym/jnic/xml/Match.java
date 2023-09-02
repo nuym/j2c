@@ -1,39 +1,40 @@
 package cc.nuym.jnic.xml;
 
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.simpleframework.xml.Attribute;
 
-public class Match
-{
-    @JacksonXmlProperty (localName = "className")
+public class Match {
+
+    @Attribute(name = "className", required=false)
     private String className;
-    @JacksonXmlProperty(localName = "methodName")
+
+    @Attribute(name = "methodName",required=false)
     private String methodName;
-    @JacksonXmlProperty(localName = "methodDesc")
+
+    @Attribute(name = "methodDesc",required=false)
     private String methodDesc;
-    
+
     public String getClassName() {
-        return this.className;
+        return className;
     }
-    
-    public void setClassName(final String className) {
+
+    public void setClassName(String className) {
         this.className = className;
     }
-    
+
     public String getMethodName() {
-        return this.methodName;
-    }
-    
-    public void setMethodName(final String methodName) {
-        this.methodName = methodName;
-    }
-    
-    public String getMethodDesc() {
-        return this.methodDesc;
+        return methodName;
     }
 
-    
-    public void setMethodDesc(final String methodDesc) {
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+
+    public String getMethodDesc() {
+        return methodDesc;
+    }
+
+    public void setMethodDesc(String methodDesc) {
         this.methodDesc = methodDesc;
     }
 }
