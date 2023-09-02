@@ -18,6 +18,13 @@ This project only merely uses the package name `dev.jnic` which should not inher
 # License
 This project is licensed under the [GNU General Public License v3.0](https://choosealicense.com/licenses/agpl-3.0/).
 
-# Special Thanks
+# Special Thanks (Ranking in no particular order)
 - [native-obfuscator](https://github.com/radioegor146/native-obfuscator)
 - [JNIC](jnic.dev)
+- [JavaObfuscatorTest](https://github.com/huzpsb/JavaObfuscatorTest)
+- [Open-Myj2c](https://github.com/MyJ2c/Open-MyJ2c)
+- [Bozar](https://github.com/vimasig/Bozar)
+- The following friends of mine have helped me refine this program：
+- [ImFl0wow](https://github.com/ImFl0wow)
+- [huzpsb](https://github.com/huzpsb)
+- [ts](https://github.com/uniformization)
