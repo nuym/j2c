@@ -4,6 +4,8 @@
 
 Open source and performance close to JNIC (excluding Zig performance).
 
+Some code was copied from GitHub above, I apologize for that, if this has your code in it, you can contact me to add your copyright, the code is terrible, I'll try to optimize the code and then push it, you can click a Star to support it if you're interested.
+
 | Obfuscator                                                         | Test#1  | Test#2   | Performance | Size  |
 |--------------------------------------------------------------------|---------|----------|-------------|-------|
 | [None](https://www.java.com/)                                  | PPPPPPP | PPPPPPPP | 27ms        | 29KB  | 
