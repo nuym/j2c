@@ -1,6 +1,6 @@
 # nuym's jnic
 
-> Will be open-sourced eventually
+> New version is on the way...
 
 Open source and performance close to JNIC (excluding Zig performance).
 
