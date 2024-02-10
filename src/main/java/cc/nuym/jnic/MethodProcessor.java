@@ -1,8 +1,6 @@
 // rebuild
 package cc.nuym.jnic;
 
-import cc.nuym.jnic.annotations.Virtualization;
-import cc.nuym.jnic.annotations.VirtualizationLock;
 import cc.nuym.jnic.special.ClInitSpecialMethodProcessor;
 import cc.nuym.jnic.special.DefaultSpecialMethodProcessor;
 import cc.nuym.jnic.special.SpecialMethodProcessor;
@@ -65,8 +63,6 @@ public class MethodProcessor {
     public static final int[] STACK_TO_STACK;
     private final NativeObfuscator obfuscator;
     private final InstructionHandlerContainer<?>[] handlers;
-    private static final String VM_NATIVE_ANNOTATION_DESC = Type.getDescriptor(Virtualization.class);
-    private static final String VMLOCK_NATIVE_ANNOTATION_DESC = Type.getDescriptor(VirtualizationLock.class);
     public static final Map<Integer, String> INSTRUCTIONS = new HashMap<>();
 
 
@@ -118,7 +114,7 @@ public class MethodProcessor {
 
         if ("<clinit>".equals(method.name) && method.instructions.size() == 0) {
             context.obfuscator.getNoInitClassMap().put(context.clazz.name, "1");
-            specialMethodProcessor.postProcess(context);
+            specialMethodProcessor.postprocess(context);
             return;
         }
 
@@ -130,7 +126,7 @@ public class MethodProcessor {
 
         output.append("/* " + context.clazz.name + ".").append(Util.escapeCommentString(method.name)).append(Util.escapeCommentString(method.desc)).append("*/");
         output.append("\n");
-        specialMethodProcessor.preProcess(context);
+        specialMethodProcessor.preprocess(context);
 
         String methodName = Util.escapeCppNameString("jnic_" + context.methodIndex);
         context.obfuscator.getClassMethodNameMap().put(context.clazz.name + "." + method.name + method.desc, methodName);
@@ -337,7 +333,7 @@ public class MethodProcessor {
         output.append("}\n\n");
         method.localVariables.clear();
         method.tryCatchBlocks.clear();
-        specialMethodProcessor.postProcess(context);
+        specialMethodProcessor.postprocess(context);
     }
 
     public static String nameFromNode(MethodNode m, ClassNode cn) {

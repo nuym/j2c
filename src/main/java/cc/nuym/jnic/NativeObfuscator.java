@@ -159,19 +159,11 @@ public class NativeObfuscator {
                                 CachedFieldInfo cachedFieldInfo = new CachedFieldInfo(classNode.name, field.name, field.desc, isStatic);
                                 classInfo.addCachedField(cachedFieldInfo);
                             }
-                            if (config.getOptions() != null && "true".equals(config.getOptions().getFlowObf())) {
-                                //控制流混淆
-                                Flow.transformClass(classNode);
-                            }
                             for (MethodNode method : classNode.methods) {
                                 if ("<clinit>".equals(method.name)) continue;
                                 isStatic = Util.getFlag(method.access, 8);
                                 CachedMethodInfo cachedMethodInfo = new CachedMethodInfo(classNode.name, method.name, method.desc, isStatic);
                                 classInfo.addCachedMethod(cachedMethodInfo);
-                                if (config.getOptions() != null && "true".equals(config.getOptions().getFlowObf())) {
-                                    //控制流混淆
-                                    Flow.transformMethod(classNode, method);
-                                }
                             }
                             cache.put(classNode.name, classInfo);
                         }
@@ -549,13 +541,7 @@ public class NativeObfuscator {
                 out.putNextEntry(new ZipEntry(JarFile.MANIFEST_NAME));
                 mf.write(out);
             }
-            /*
-            SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
-            Date dat = new Date(System.currentTimeMillis());
-            String date = formatter.format(dat);
-            out.setComment("Jnic is a powerful native Java bytecode obfuscator made by nuym.\nObfuscation time: "+date+"\nContact:1006800345@qq.com\nCatch me if you can!");
 
-             */
 
             out.closeEntry();
 
@@ -564,24 +550,7 @@ public class NativeObfuscator {
             System.out.println("Terminating normally.");
         }
     }
-    /*
-        private void pack() {
-            try (JarOutputStream jarOutputStream = new JarOutputStream(new FileOutputStream(this.nativeDir+"\\"))) {
-                JarEntry jarEntry = new JarEntry(this.nativeDir+"\\");
-                jarOutputStream.putNextEntry(jarEntry);
 
-                ClassReader classReader = new ClassReader(NativeObfuscator.class.getResourceAsStream("/Loader-1.0-SNAPSHOT.zip"));
-                ClassWriter classWriter = new ClassWriter(classReader, ClassWriter.COMPUTE_MAXS);
-                classReader.accept(classWriter, ClassReader.EXPAND_FRAMES);
-
-                jarOutputStream.write(classWriter.toByteArray());
-                jarOutputStream.closeEntry();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-     */
     public static void Enter(Path outputDir) throws IOException  {//停顿
         System.out.println("Please check the dll and so files in "+outputDir+"\\build\\lib!");
         System.out.println("You can now pack the binary (type enter to continue)");

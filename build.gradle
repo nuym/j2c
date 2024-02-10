@@ -30,7 +30,7 @@ dependencies {
         exclude group: 'xpp3'
         exclude group: 'stax'
     }
-    implementation project(path: ':Annotation')
+    implementation project(path: ':annotation')
 }
 
 tasks.withType(JavaCompile) {

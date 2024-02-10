@@ -428,4 +428,8 @@ public class Util {
         OPCODE_NAME_MAP.put(198, "IFNULL");
         OPCODE_NAME_MAP.put(199, "IFNONNULL");
     }
+
+    public static boolean hasFlag(int access, int flag) {
+        return (access & flag) != 0;
+    }
 }

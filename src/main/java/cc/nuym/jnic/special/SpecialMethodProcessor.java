@@ -4,7 +4,7 @@ import cc.nuym.jnic.utils.MethodContext;
 
 public interface SpecialMethodProcessor
 {
-    String preProcess(final MethodContext p0);
+    String preprocess(final MethodContext p0);
     
-    void postProcess(final MethodContext p0);
+    void postprocess(final MethodContext p0);
 }

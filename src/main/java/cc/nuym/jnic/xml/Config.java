@@ -20,9 +20,6 @@ public class Config {
     @ElementList(name = "printmsg",required = false)
     private List<String> printmsg;
 
-    @Element(name = "options", required = false)
-    private Options options;
-
     @ElementList(name = "include", type = Match.class, required = false)
     private List<Match> includes;
 
@@ -55,13 +52,6 @@ public class Config {
         this.excludes = excludes;
     }
 
-    public Options getOptions() {
-        return options;
-    }
-
-    public void setOptions(Options options) {
-        this.options = options;
-    }
 
 
 }
