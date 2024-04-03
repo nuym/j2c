@@ -42,7 +42,7 @@ public class Main
     public static void main(final String[] args) {
         System.out.println("\n");
         System.out.println("JNIC Java to C translator 3.6.1");
-        System.out.println(" ~ (c) +Vincent Tang 2020-2023");
+        System.out.println(" ~ (c) +Vincent Tang 2020-2024");
         System.out.println("\n");
         System.out.println("License: nuym (Enterprise)");
         SetupManager.init();
@@ -121,7 +121,7 @@ public class Main
                     "\t\t<stringObf>false</stringObf>\n" +
                     "\t\t<!--Control flow obfuscation-->\n" +
                     "\t\t<flowObf>false</flowObf>\n" +
-                    "\t</options>" +
+                    "\t</options>\n" +
                     "\t<include>\n" +
                     "\t\t<!-- Match supports Ant style path matching? Match one character, * match multiple characters, * * match multiple paths -->\n" +
                     "\t\t<match className=\"**\" />\n" +
