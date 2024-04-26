@@ -80,19 +80,18 @@ public class JNICLoader {
         catch (IOException a7) {
             throw new UnsatisfiedLinkError("Failed to create temp file");
         }
-        byte[] bytes = new byte[2048];
         try {
             InputStream inputStream = JNICLoader.class.getResourceAsStream(data);
             if (inputStream == null) {
                 throw new UnsatisfiedLinkError(String.format("Failed to open dat file: %s", data));
             }
-            try (FileOutputStream fileOutputStream = new FileOutputStream(dat);){
-                int n;
-                while ((n=inputStream.read())!=-1) {
-                    fileOutputStream.write(n);
+            try (FileOutputStream fileOutputStream = new FileOutputStream(dat)) {
+                byte[] buffer = new byte[8192]; // Read in buffer to increase speed at cost of memory consumption (< 1 MiB)
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    fileOutputStream.write(buffer, 0, bytesRead);
                 }
                 inputStream.close();
-                fileOutputStream.close();
             }
         }
         catch (IOException exception) {
